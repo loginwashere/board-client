@@ -909,7 +909,7 @@ window.require.define({"routes": function(exports, require, module) {
   module.exports = function(match) {
     match('', 'boards#index');
     match('boards', 'boards#index');
-    return match(':alias', 'boards#show');
+    return match('boards/:alias', 'boards#show');
   };
   
 }});
