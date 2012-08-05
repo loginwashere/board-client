@@ -15031,10 +15031,12 @@ require.define({
         if (this.disposed) {
           return;
         }
-        _ref = this.subviews;
-        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-          subview = _ref[_i];
-          subview.dispose();
+        if (typeof subview !== "undefined" && subview !== null) {
+          _ref = this.subviews;
+          for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+            subview = _ref[_i];
+            subview.dispose();
+          }
         }
         this.unsubscribeAllEvents();
         this.modelUnbindAll();

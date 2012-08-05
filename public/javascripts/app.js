@@ -178,9 +178,9 @@ window.require.define({"controllers/boards_controller": function(exports, requir
     }
 
     BoardsController.prototype.historyURL = function(params) {
-      console.log('params: ', params);
+      console.log('BoardsController - historyURL - params: ', params);
       if (params.alias) {
-        return "boards/" + params.alias;
+        return "" + params.alias;
       } else {
         return '';
       }
@@ -192,7 +192,7 @@ window.require.define({"controllers/boards_controller": function(exports, requir
     };
 
     BoardsController.prototype.index = function(params) {
-      console.log(666);
+      console.log('BoardsController - index - params: ', params);
       this.collection = new Boards();
       console.log('collection: ', this.collection);
       this.view = new BoardsView({
@@ -202,13 +202,15 @@ window.require.define({"controllers/boards_controller": function(exports, requir
     };
 
     BoardsController.prototype.show = function(params) {
-      this.model = new Board({
+      console.log('BoardsController - show - params: ', params);
+      this.collection = new Boards({
         alias: params.alias
       });
-      this.view = new BoardView({
-        model: this.model
+      console.log('collection: ', this.collection);
+      this.view = new BoardsView({
+        collection: this.collection
       });
-      return this.model.fetch();
+      return this.collection.fetch();
     };
 
     return BoardsController;
@@ -796,8 +798,23 @@ window.require.define({"models/boards": function(exports, require, module) {
 
     Boards.prototype.model = Board;
 
+    Boards.prototype.initialize = function(attributes, options) {
+      Boards.__super__.initialize.apply(this, arguments);
+      console.debug('Boards#initialize - attributes', attributes);
+      if ((attributes != null ? attributes.alias : void 0) != null) {
+        console.debug('attributes.alias', attributes.alias);
+        return this.alias = attributes.alias;
+      }
+    };
+
     Boards.prototype.url = function() {
-      return 'http://192.168.1.35:8080' + '/boards';
+      var url;
+      console.debug('Boards - url - @alias ', this.alias);
+      url = 'http://192.168.1.35:8080' + '/boards';
+      if (this.alias != null) {
+        url = url + '/' + this.alias;
+      }
+      return url;
     };
 
     Boards.prototype.parse = function(response) {
@@ -873,7 +890,7 @@ window.require.define({"routes": function(exports, require, module) {
   module.exports = function(match) {
     match('', 'boards#index');
     match('boards', 'boards#index');
-    return match('boards/:alias', 'boards#show');
+    return match(':alias', 'boards#show');
   };
   
 }});
@@ -1010,6 +1027,11 @@ window.require.define({"views/board_view": function(exports, require, module) {
     }
 
     BoardView.prototype.template = template;
+
+    BoardView.prototype.initialize = function(atributes) {
+      console.debug('BoardView - initialize - arguments ', arguments);
+      return console.debug('BoardView - initialize - atributes ', atributes);
+    };
 
     BoardView.prototype.getTemplateData = function() {
       console.log('BoardView - @model - ', this.model);
