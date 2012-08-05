@@ -83,7 +83,7 @@ window.require.define({"config": function(exports, require, module) {
 
   production = true;
 
-  config.api.root = production ? 'http://192.168.1.35:8080' : 'http://192.168.1.35:8080';
+  config.api.root = production ? 'http://secret-hamlet-7793.herokuapp.com' : 'http://192.168.1.35:8080';
 
   config.api.versionRoot = config.api.root + '/v1';
 
