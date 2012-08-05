@@ -85,6 +85,8 @@ window.require.define({"config": function(exports, require, module) {
 
   config.api.root = production ? 'http://secret-hamlet-7793.herokuapp.com' : 'http://192.168.1.35:8080';
 
+  config.root = production ? '/board-client/' : '/';
+
   config.api.versionRoot = config.api.root + '/v1';
 
   module.exports = config;
@@ -92,7 +94,7 @@ window.require.define({"config": function(exports, require, module) {
 }});
 
 window.require.define({"application": function(exports, require, module) {
-  var Application, Chaplin, HeaderController, Layout, SessionController, mediator, routes,
+  var Application, Chaplin, HeaderController, Layout, SessionController, config, mediator, routes,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
@@ -107,6 +109,8 @@ window.require.define({"application": function(exports, require, module) {
   HeaderController = require('controllers/header_controller');
 
   Layout = require('views/layout');
+
+  config = require('config');
 
   module.exports = Application = (function(_super) {
 
@@ -124,7 +128,9 @@ window.require.define({"application": function(exports, require, module) {
       this.initLayout();
       this.initMediator();
       this.initControllers();
-      this.initRouter(routes);
+      this.initRouter(routes, {
+        root: config.root
+      });
       return typeof Object.freeze === "function" ? Object.freeze(this) : void 0;
     };
 
