@@ -1,5 +1,6 @@
 Collection = require 'models/base/collection'
 Board = require 'models/board'
+config = require 'config'
 
 module.exports = class Boards extends Collection
   model: Board
@@ -13,7 +14,7 @@ module.exports = class Boards extends Collection
 
   url: ->
     console.debug 'Boards - url - @alias ', @alias
-    url = 'http://192.168.1.35:8080' + '/boards'
+    url = config.api.root + '/boards'
     if @alias?
       url = url + '/' + @alias
     url

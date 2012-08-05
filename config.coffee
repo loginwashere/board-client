@@ -11,6 +11,7 @@ exports.config =
         # Files in `vendor` directories are compiled before other files
         # even if they aren't specified in order.before.
         before: [
+          'app/config.coffee'
           'vendor/scripts/console-helper.js',
           'vendor/scripts/jquery-1.7.2.js',
           'vendor/scripts/underscore-1.3.3.js',

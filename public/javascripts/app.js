@@ -74,6 +74,23 @@
   globals.require.brunch = true;
 })();
 
+window.require.define({"config": function(exports, require, module) {
+  var config, production;
+
+  config = {
+    api: {}
+  };
+
+  production = true;
+
+  config.api.root = production ? 'http://192.168.1.35:8080' : 'http://192.168.1.35:8080';
+
+  config.api.versionRoot = config.api.root + '/v1';
+
+  module.exports = config;
+  
+}});
+
 window.require.define({"application": function(exports, require, module) {
   var Application, Chaplin, HeaderController, Layout, SessionController, mediator, routes,
     __hasProp = {}.hasOwnProperty,
@@ -780,13 +797,15 @@ window.require.define({"models/board": function(exports, require, module) {
 }});
 
 window.require.define({"models/boards": function(exports, require, module) {
-  var Board, Boards, Collection,
+  var Board, Boards, Collection, config,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
   Collection = require('models/base/collection');
 
   Board = require('models/board');
+
+  config = require('config');
 
   module.exports = Boards = (function(_super) {
 
@@ -810,7 +829,7 @@ window.require.define({"models/boards": function(exports, require, module) {
     Boards.prototype.url = function() {
       var url;
       console.debug('Boards - url - @alias ', this.alias);
-      url = 'http://192.168.1.35:8080' + '/boards';
+      url = config.api.root + '/boards';
       if (this.alias != null) {
         url = url + '/' + this.alias;
       }
