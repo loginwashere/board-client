@@ -4,6 +4,7 @@ routes = require 'routes'
 SessionController = require 'controllers/session_controller'
 HeaderController = require 'controllers/header_controller'
 Layout = require 'views/layout'
+config = require 'config'
 
 # The application object
 module.exports = class Application extends Chaplin.Application
@@ -23,7 +24,7 @@ module.exports = class Application extends Chaplin.Application
     @initControllers()
 
     # Register all routes and start routing
-    @initRouter routes
+    @initRouter routes, root: config.root
     # You might pass Router/History options as the second parameter.
     # Chaplin enables pushState per default and Backbone uses / as
     # the root per default. You might change that in the options

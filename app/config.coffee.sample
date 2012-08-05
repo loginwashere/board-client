@@ -3,9 +3,14 @@ config = {api: {}}
 production = yes
 
 config.api.root = if production
-  'http://192.168.1.35:8080'
+  'http://secret-hamlet-7793.herokuapp.com'
 else
   'http://192.168.1.35:8080'
+
+config.root = if production
+  '/board-client/'
+else
+  '/'
 
 config.api.versionRoot = config.api.root + '/v1'
 
