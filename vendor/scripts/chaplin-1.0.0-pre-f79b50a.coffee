@@ -1170,7 +1170,7 @@ require.define 'chaplin/views/view': (exports, require, module) ->
       return if @disposed
 
       # Dispose subviews
-      subview.dispose() for subview in @subviews
+      if subview? then subview.dispose() for subview in @subviews
 
       # Unbind handlers of global events
       @unsubscribeAllEvents()
