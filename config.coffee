@@ -44,3 +44,6 @@ exports.config =
 
     templates:
       joinTo: 'javascripts/app.js'
+  server:
+    base: '/board-client'
+    run: no
