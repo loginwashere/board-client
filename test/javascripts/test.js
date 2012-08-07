@@ -87,6 +87,32 @@ window.require.define({"test/controllers/boards_controller_test": function(expor
   
 }});
 
+window.require.define({"test/controllers/posts_controller_test": function(exports, require, module) {
+  var Posts;
+
+  Posts = require('models/posts');
+
+  describe('Posts', function() {
+    return beforeEach(function() {
+      return this.model = new Posts();
+    });
+  });
+  
+}});
+
+window.require.define({"test/controllers/threads_controller_test": function(exports, require, module) {
+  var Threads;
+
+  Threads = require('models/threads');
+
+  describe('Threads', function() {
+    return beforeEach(function() {
+      return this.model = new Threads();
+    });
+  });
+  
+}});
+
 window.require.define({"test/models/board": function(exports, require, module) {
   var Board;
 
@@ -122,6 +148,44 @@ window.require.define({"test/models/header_test": function(exports, require, mod
       return expect(this.model.get('items')).to.have.length(3);
     });
   });
+  
+}});
+
+window.require.define({"test/models/post": function(exports, require, module) {
+  var Post;
+
+  Post = require('models/post');
+
+  describe('Post', function() {
+    return beforeEach(function() {
+      return this.model = new Post();
+    });
+  });
+  
+}});
+
+window.require.define({"test/models/posts_test": function(exports, require, module) {
+  
+
+  
+}});
+
+window.require.define({"test/models/thread": function(exports, require, module) {
+  var Thread;
+
+  Thread = require('models/thread');
+
+  describe('Thread', function() {
+    return beforeEach(function() {
+      return this.model = new Thread();
+    });
+  });
+  
+}});
+
+window.require.define({"test/models/threads_test": function(exports, require, module) {
+  
+
   
 }});
 
@@ -232,8 +296,64 @@ window.require.define({"test/views/home_page_view_test": function(exports, requi
   
 }});
 
+window.require.define({"test/views/post_view": function(exports, require, module) {
+  var PostView;
+
+  PostView = require('views/post_view');
+
+  describe('PostView', function() {
+    return beforeEach(function() {
+      return this.view = new PostView();
+    });
+  });
+  
+}});
+
+window.require.define({"test/views/posts_view": function(exports, require, module) {
+  var PostsView;
+
+  PostsView = require('views/posts_view');
+
+  describe('PostsView', function() {
+    return beforeEach(function() {
+      return this.view = new PostsView();
+    });
+  });
+  
+}});
+
+window.require.define({"test/views/thread_view": function(exports, require, module) {
+  var ThreadView;
+
+  ThreadView = require('views/thread_view');
+
+  describe('ThreadView', function() {
+    return beforeEach(function() {
+      return this.view = new ThreadView();
+    });
+  });
+  
+}});
+
+window.require.define({"test/views/threads_view": function(exports, require, module) {
+  var ThreadsView;
+
+  ThreadsView = require('views/threads_view');
+
+  describe('ThreadsView', function() {
+    return beforeEach(function() {
+      return this.view = new ThreadsView();
+    });
+  });
+  
+}});
+
 window.require('test/controllers/boards_controller_test');
+window.require('test/controllers/posts_controller_test');
+window.require('test/controllers/threads_controller_test');
 window.require('test/models/boards_test');
 window.require('test/models/header_test');
+window.require('test/models/posts_test');
+window.require('test/models/threads_test');
 window.require('test/views/header_view_test');
 window.require('test/views/home_page_view_test');
