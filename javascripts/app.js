@@ -85,7 +85,7 @@ window.require.define({"config": function(exports, require, module) {
 
   config.api.root = production ? 'http://secret-hamlet-7793.herokuapp.com' : 'http://192.168.1.35:8080';
 
-  config.root = production ? '/board-client/' : '/';
+  config.root = production ? '/board-client/' : '/board-client/';
 
   config.api.versionRoot = config.api.root + '/v1';
 
@@ -915,7 +915,9 @@ window.require.define({"routes": function(exports, require, module) {
   module.exports = function(match) {
     match('', 'boards#index');
     match('boards', 'boards#index');
-    return match('boards/:alias', 'boards#show');
+    match('boards/:alias', 'boards#show');
+    match('boards/:alias/threads', 'boards#index');
+    return match('boards/:alias/threads/:threadId', 'boards#show');
   };
   
 }});
