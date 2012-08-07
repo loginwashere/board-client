@@ -306,6 +306,27 @@ window.require.define({"controllers/home_controller": function(exports, require,
   
 }});
 
+window.require.define({"controllers/posts_controller": function(exports, require, module) {
+  var Controller, PostsController,
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  Controller = require('controllers/base/controller');
+
+  module.exports = PostsController = (function(_super) {
+
+    __extends(PostsController, _super);
+
+    function PostsController() {
+      return PostsController.__super__.constructor.apply(this, arguments);
+    }
+
+    return PostsController;
+
+  })(Controller);
+  
+}});
+
 window.require.define({"controllers/session_controller": function(exports, require, module) {
   var Controller, LoginView, SessionController, User, mediator,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
@@ -447,6 +468,27 @@ window.require.define({"controllers/session_controller": function(exports, requi
     };
 
     return SessionController;
+
+  })(Controller);
+  
+}});
+
+window.require.define({"controllers/threads_controller": function(exports, require, module) {
+  var Controller, ThreadsController,
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  Controller = require('controllers/base/controller');
+
+  module.exports = ThreadsController = (function(_super) {
+
+    __extends(ThreadsController, _super);
+
+    function ThreadsController() {
+      return ThreadsController.__super__.constructor.apply(this, arguments);
+    }
+
+    return ThreadsController;
 
   })(Controller);
   
@@ -889,6 +931,98 @@ window.require.define({"models/header": function(exports, require, module) {
   
 }});
 
+window.require.define({"models/post": function(exports, require, module) {
+  var Model, Post,
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  Model = require('models/base/model');
+
+  module.exports = Post = (function(_super) {
+
+    __extends(Post, _super);
+
+    function Post() {
+      return Post.__super__.constructor.apply(this, arguments);
+    }
+
+    return Post;
+
+  })(Model);
+  
+}});
+
+window.require.define({"models/posts": function(exports, require, module) {
+  var Collection, Posts,
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  Collection = require('models/base/collection');
+
+  Posts = require('models/posts');
+
+  module.exports = Posts = (function(_super) {
+
+    __extends(Posts, _super);
+
+    function Posts() {
+      return Posts.__super__.constructor.apply(this, arguments);
+    }
+
+    Posts.prototype.model = Posts;
+
+    return Posts;
+
+  })(Collection);
+  
+}});
+
+window.require.define({"models/thread": function(exports, require, module) {
+  var Model, Thread,
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  Model = require('models/base/model');
+
+  module.exports = Thread = (function(_super) {
+
+    __extends(Thread, _super);
+
+    function Thread() {
+      return Thread.__super__.constructor.apply(this, arguments);
+    }
+
+    return Thread;
+
+  })(Model);
+  
+}});
+
+window.require.define({"models/threads": function(exports, require, module) {
+  var Collection, Threads,
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  Collection = require('models/base/collection');
+
+  Threads = require('models/threads');
+
+  module.exports = Threads = (function(_super) {
+
+    __extends(Threads, _super);
+
+    function Threads() {
+      return Threads.__super__.constructor.apply(this, arguments);
+    }
+
+    Threads.prototype.model = Threads;
+
+    return Threads;
+
+  })(Collection);
+  
+}});
+
 window.require.define({"models/user": function(exports, require, module) {
   var Model, User,
     __hasProp = {}.hasOwnProperty,
@@ -916,8 +1050,10 @@ window.require.define({"routes": function(exports, require, module) {
     match('', 'boards#index');
     match('boards', 'boards#index');
     match('boards/:alias', 'boards#show');
-    match('boards/:alias/threads', 'boards#index');
-    return match('boards/:alias/threads/:threadId', 'boards#show');
+    match('boards/:alias/threads', 'threads#index');
+    match('boards/:alias/threads/:threadId', 'threads#show');
+    match('boards/:alias/threads/:threadId/posts', 'posts#index');
+    return match('boards/:alias/threads/:threadId/posts/:postId', 'posts#show');
   };
   
 }});
@@ -1279,6 +1415,56 @@ window.require.define({"views/login_view": function(exports, require, module) {
   
 }});
 
+window.require.define({"views/post_view": function(exports, require, module) {
+  var PostView, View, template,
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  View = require('views/base/view');
+
+  template = require('views/templates/post');
+
+  module.exports = PostView = (function(_super) {
+
+    __extends(PostView, _super);
+
+    function PostView() {
+      return PostView.__super__.constructor.apply(this, arguments);
+    }
+
+    PostView.prototype.template = template;
+
+    return PostView;
+
+  })(View);
+  
+}});
+
+window.require.define({"views/posts_view": function(exports, require, module) {
+  var PostsView, View, template,
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  View = require('views/base/view');
+
+  template = require('views/templates/posts');
+
+  module.exports = PostsView = (function(_super) {
+
+    __extends(PostsView, _super);
+
+    function PostsView() {
+      return PostsView.__super__.constructor.apply(this, arguments);
+    }
+
+    PostsView.prototype.template = template;
+
+    return PostsView;
+
+  })(View);
+  
+}});
+
 window.require.define({"views/templates/board": function(exports, require, module) {
   module.exports = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
     helpers = helpers || Handlebars.helpers;
@@ -1389,5 +1575,91 @@ window.require.define({"views/templates/login": function(exports, require, modul
 
 
     return buffer;});
+}});
+
+window.require.define({"views/templates/post": function(exports, require, module) {
+  module.exports = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+    helpers = helpers || Handlebars.helpers;
+    var buffer = "", foundHelper, self=this;
+
+
+    return buffer;});
+}});
+
+window.require.define({"views/templates/posts": function(exports, require, module) {
+  module.exports = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+    helpers = helpers || Handlebars.helpers;
+    var buffer = "", foundHelper, self=this;
+
+
+    return buffer;});
+}});
+
+window.require.define({"views/templates/thread": function(exports, require, module) {
+  module.exports = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+    helpers = helpers || Handlebars.helpers;
+    var buffer = "", foundHelper, self=this;
+
+
+    return buffer;});
+}});
+
+window.require.define({"views/templates/threads": function(exports, require, module) {
+  module.exports = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+    helpers = helpers || Handlebars.helpers;
+    var buffer = "", foundHelper, self=this;
+
+
+    return buffer;});
+}});
+
+window.require.define({"views/thread_view": function(exports, require, module) {
+  var ThreadView, View, template,
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  View = require('views/base/view');
+
+  template = require('views/templates/thread');
+
+  module.exports = ThreadView = (function(_super) {
+
+    __extends(ThreadView, _super);
+
+    function ThreadView() {
+      return ThreadView.__super__.constructor.apply(this, arguments);
+    }
+
+    ThreadView.prototype.template = template;
+
+    return ThreadView;
+
+  })(View);
+  
+}});
+
+window.require.define({"views/threads_view": function(exports, require, module) {
+  var ThreadsView, View, template,
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  View = require('views/base/view');
+
+  template = require('views/templates/threads');
+
+  module.exports = ThreadsView = (function(_super) {
+
+    __extends(ThreadsView, _super);
+
+    function ThreadsView() {
+      return ThreadsView.__super__.constructor.apply(this, arguments);
+    }
+
+    ThreadsView.prototype.template = template;
+
+    return ThreadsView;
+
+  })(View);
+  
 }});
 
