@@ -178,17 +178,13 @@ window.require.define({"controllers/base/controller": function(exports, require,
 }});
 
 window.require.define({"controllers/boards_controller": function(exports, require, module) {
-  var Board, BoardView, Boards, BoardsController, BoardsView, Controller,
+  var Boards, BoardsController, BoardsView, Controller,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
   Controller = require('controllers/base/controller');
 
-  Board = require('models/board');
-
   Boards = require('models/boards');
-
-  BoardView = require('views/board_view');
 
   BoardsView = require('views/boards_view');
 
@@ -199,15 +195,6 @@ window.require.define({"controllers/boards_controller": function(exports, requir
     function BoardsController() {
       return BoardsController.__super__.constructor.apply(this, arguments);
     }
-
-    BoardsController.prototype.historyURL = function(params) {
-      console.log('BoardsController - historyURL - params: ', params);
-      if (params.alias) {
-        return "" + params.alias;
-      } else {
-        return '';
-      }
-    };
 
     BoardsController.prototype.initialize = function() {
       console.log('BoardsController - initialize');
@@ -474,11 +461,15 @@ window.require.define({"controllers/session_controller": function(exports, requi
 }});
 
 window.require.define({"controllers/threads_controller": function(exports, require, module) {
-  var Controller, ThreadsController,
+  var Controller, Threads, ThreadsController, ThreadsView,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
   Controller = require('controllers/base/controller');
+
+  Threads = require('models/threads');
+
+  ThreadsView = require('views/threads_view');
 
   module.exports = ThreadsController = (function(_super) {
 
@@ -487,6 +478,38 @@ window.require.define({"controllers/threads_controller": function(exports, requi
     function ThreadsController() {
       return ThreadsController.__super__.constructor.apply(this, arguments);
     }
+
+    ThreadsController.prototype.initialize = function() {
+      console.log('ThreadsController - initialize');
+      return ThreadsController.__super__.initialize.apply(this, arguments);
+    };
+
+    ThreadsController.prototype.index = function(params) {
+      console.log('ThreadsController - index - params: ', params);
+      this.collection = new Threads({
+        alias: params.alias
+      });
+      console.log('collection: ', this.collection);
+      this.view = new ThreadsView({
+        collection: this.collection,
+        alias: params.alias
+      });
+      return this.collection.fetch();
+    };
+
+    ThreadsController.prototype.show = function(params) {
+      console.log('ThreadsController - show - params: ', params);
+      this.collection = new Threads({
+        alias: params.alias,
+        threadId: params.threadId
+      });
+      console.log('collection: ', this.collection);
+      this.view = new ThreadsView({
+        collection: this.collection,
+        alias: params.alias
+      });
+      return this.collection.fetch();
+    };
 
     return ThreadsController;
 
@@ -953,13 +976,13 @@ window.require.define({"models/post": function(exports, require, module) {
 }});
 
 window.require.define({"models/posts": function(exports, require, module) {
-  var Collection, Posts,
+  var Collection, Post, Posts,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
   Collection = require('models/base/collection');
 
-  Posts = require('models/posts');
+  Post = require('models/post');
 
   module.exports = Posts = (function(_super) {
 
@@ -969,7 +992,7 @@ window.require.define({"models/posts": function(exports, require, module) {
       return Posts.__super__.constructor.apply(this, arguments);
     }
 
-    Posts.prototype.model = Posts;
+    Posts.prototype.model = Post;
 
     return Posts;
 
@@ -999,13 +1022,15 @@ window.require.define({"models/thread": function(exports, require, module) {
 }});
 
 window.require.define({"models/threads": function(exports, require, module) {
-  var Collection, Threads,
+  var Collection, Thread, Threads, config,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
   Collection = require('models/base/collection');
 
-  Threads = require('models/threads');
+  Thread = require('models/thread');
+
+  config = require('config');
 
   module.exports = Threads = (function(_super) {
 
@@ -1015,7 +1040,35 @@ window.require.define({"models/threads": function(exports, require, module) {
       return Threads.__super__.constructor.apply(this, arguments);
     }
 
-    Threads.prototype.model = Threads;
+    Threads.prototype.model = Thread;
+
+    Threads.prototype.initialize = function(attributes, options) {
+      Threads.__super__.initialize.apply(this, arguments);
+      console.debug('Threads#initialize - attributes', attributes);
+      if ((attributes != null ? attributes.alias : void 0) != null) {
+        console.debug('attributes.alias', attributes.alias);
+        console.debug('attributes.threadId', attributes.threadId);
+        this.alias = attributes.alias;
+        if (attributes.threadId != null) {
+          return this.threadId = attributes.threadId;
+        }
+      }
+    };
+
+    Threads.prototype.url = function() {
+      var url;
+      console.debug('Threads - url - @alias ', this.alias);
+      url = config.api.root + '/boards/' + this.alias + '/threads';
+      if (this.threadId != null) {
+        url = url + '/' + this.threadId;
+      }
+      return url;
+    };
+
+    Threads.prototype.parse = function(response) {
+      console.log('Threads - parse - response', response);
+      return response.response.threads;
+    };
 
     return Threads;
 
@@ -1471,7 +1524,13 @@ window.require.define({"views/templates/board": function(exports, require, modul
     var buffer = "", stack1, foundHelper, self=this, functionType="function", helperMissing=helpers.helperMissing, undef=void 0, escapeExpression=this.escapeExpression;
 
 
-    buffer += "<div class=\"well\">\r\n    <p>";
+    buffer += "<div class=\"well board-";
+    foundHelper = helpers.board;
+    stack1 = foundHelper || depth0.board;
+    stack1 = (stack1 === null || stack1 === undefined || stack1 === false ? stack1 : stack1.alias);
+    if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
+    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "board.alias", { hash: {} }); }
+    buffer += escapeExpression(stack1) + "\">\r\n    <p>";
     foundHelper = helpers.board;
     stack1 = foundHelper || depth0.board;
     stack1 = (stack1 === null || stack1 === undefined || stack1 === false ? stack1 : stack1.alias);
@@ -1598,19 +1657,68 @@ window.require.define({"views/templates/posts": function(exports, require, modul
 window.require.define({"views/templates/thread": function(exports, require, module) {
   module.exports = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
     helpers = helpers || Handlebars.helpers;
-    var buffer = "", foundHelper, self=this;
+    var buffer = "", stack1, foundHelper, self=this, functionType="function", helperMissing=helpers.helperMissing, undef=void 0, escapeExpression=this.escapeExpression;
 
 
+    buffer += "<div class=\"well thread-";
+    foundHelper = helpers.thread;
+    stack1 = foundHelper || depth0.thread;
+    stack1 = (stack1 === null || stack1 === undefined || stack1 === false ? stack1 : stack1.alias);
+    if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
+    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "thread.alias", { hash: {} }); }
+    buffer += escapeExpression(stack1) + "\">\r\n    <p>";
+    foundHelper = helpers.thread;
+    stack1 = foundHelper || depth0.thread;
+    stack1 = (stack1 === null || stack1 === undefined || stack1 === false ? stack1 : stack1.alias);
+    if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
+    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "thread.alias", { hash: {} }); }
+    buffer += escapeExpression(stack1) + "</p>\r\n    <p>";
+    foundHelper = helpers.thread;
+    stack1 = foundHelper || depth0.thread;
+    stack1 = (stack1 === null || stack1 === undefined || stack1 === false ? stack1 : stack1.title);
+    if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
+    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "thread.title", { hash: {} }); }
+    buffer += escapeExpression(stack1) + "</p>\r\n    <p>";
+    foundHelper = helpers.thread;
+    stack1 = foundHelper || depth0.thread;
+    stack1 = (stack1 === null || stack1 === undefined || stack1 === false ? stack1 : stack1.description);
+    if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
+    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "thread.description", { hash: {} }); }
+    buffer += escapeExpression(stack1) + "</p>\r\n</div>";
     return buffer;});
 }});
 
 window.require.define({"views/templates/threads": function(exports, require, module) {
   module.exports = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
     helpers = helpers || Handlebars.helpers;
-    var buffer = "", foundHelper, self=this;
+    var stack1, stack2, foundHelper, tmp1, self=this, functionType="function", helperMissing=helpers.helperMissing, undef=void 0, escapeExpression=this.escapeExpression;
 
+  function program1(depth0,data) {
+    
+    var buffer = "", stack1;
+    buffer += "\r\n  <a class=\"header-link\" href=\"";
+    foundHelper = helpers.alias;
+    stack1 = foundHelper || depth0.alias;
+    if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
+    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "alias", { hash: {} }); }
+    buffer += escapeExpression(stack1) + "\">";
+    foundHelper = helpers.title;
+    stack1 = foundHelper || depth0.title;
+    if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
+    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "title", { hash: {} }); }
+    buffer += escapeExpression(stack1) + "</a>\r\n";
+    return buffer;}
 
-    return buffer;});
+    foundHelper = helpers.items;
+    stack1 = foundHelper || depth0.items;
+    stack2 = helpers.each;
+    tmp1 = self.program(1, program1, data);
+    tmp1.hash = {};
+    tmp1.fn = tmp1;
+    tmp1.inverse = self.noop;
+    stack1 = stack2.call(depth0, stack1, tmp1);
+    if(stack1 || stack1 === 0) { return stack1; }
+    else { return ''; }});
 }});
 
 window.require.define({"views/thread_view": function(exports, require, module) {
@@ -1632,6 +1740,18 @@ window.require.define({"views/thread_view": function(exports, require, module) {
 
     ThreadView.prototype.template = template;
 
+    ThreadView.prototype.initialize = function(atributes) {
+      console.debug('ThreadView - initialize - arguments ', arguments);
+      return console.debug('ThreadView - initialize - atributes ', atributes);
+    };
+
+    ThreadView.prototype.getTemplateData = function() {
+      console.log('ThreadView - @model - ', this.model);
+      return {
+        thread: this.model.toJSON()
+      };
+    };
+
     return ThreadView;
 
   })(View);
@@ -1639,13 +1759,15 @@ window.require.define({"views/thread_view": function(exports, require, module) {
 }});
 
 window.require.define({"views/threads_view": function(exports, require, module) {
-  var ThreadsView, View, template,
+  var CollectionView, ThreadView, ThreadsView, template,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  View = require('views/base/view');
+  CollectionView = require('views/base/collection_view');
 
   template = require('views/templates/threads');
+
+  ThreadView = require('views/thread_view');
 
   module.exports = ThreadsView = (function(_super) {
 
@@ -1657,9 +1779,21 @@ window.require.define({"views/threads_view": function(exports, require, module) 
 
     ThreadsView.prototype.template = template;
 
+    ThreadsView.prototype.itemView = ThreadView;
+
+    ThreadsView.prototype.container = '#page-container';
+
+    ThreadsView.prototype.autoRender = true;
+
+    ThreadsView.prototype.getView = function(item) {
+      return new ThreadView({
+        model: item
+      });
+    };
+
     return ThreadsView;
 
-  })(View);
+  })(CollectionView);
   
 }});
 

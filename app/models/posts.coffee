@@ -1,5 +1,5 @@
 Collection = require 'models/base/collection'
-Posts = require 'models/posts'
+Post = require 'models/post'
 
 module.exports = class Posts extends Collection
-  model: Posts
+  model: Post
