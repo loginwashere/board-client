@@ -1,5 +1,7 @@
-<div class="well board-{{board.alias}}">
-    <p>{{board.alias}}</p>
-    <p>{{board.title}}</p>
-    <p>{{board.description}}</p>
+<div class="well board" data-cid="{{board.cid}}">
+  <i class="icon-remove pull-right delete"></i>
+  <i class="icon-pencil pull-right"></i>
+  <p>{{board.attributes.alias}}</p>
+  <p>{{board.attributes.title}}</p>
+  <p>{{board.attributes.description}}</p>
 </div>

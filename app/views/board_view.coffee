@@ -11,5 +11,6 @@ module.exports = class BoardView extends View
 
   getTemplateData: ->
     console.log 'BoardView - @model - ', @model
-    board: 
-      @model.toJSON()
+    tojsonModel = @model.toJSON()
+    console.log 'BoardView - @model - json', tojsonModel
+    board: @model

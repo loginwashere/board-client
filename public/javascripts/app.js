@@ -1250,9 +1250,12 @@ window.require.define({"views/board_view": function(exports, require, module) {
     };
 
     BoardView.prototype.getTemplateData = function() {
+      var tojsonModel;
       console.log('BoardView - @model - ', this.model);
+      tojsonModel = this.model.toJSON();
+      console.log('BoardView - @model - json', tojsonModel);
       return {
-        board: this.model.toJSON()
+        board: this.model
       };
     };
 
@@ -1281,25 +1284,49 @@ window.require.define({"views/boards_view": function(exports, require, module) {
     __extends(BoardsView, _super);
 
     function BoardsView() {
-      this.save = __bind(this.save, this);
+      this["delete"] = __bind(this["delete"], this);
+
+      this.create = __bind(this.create, this);
       return BoardsView.__super__.constructor.apply(this, arguments);
     }
 
     BoardsView.prototype.initialize = function(options) {
       BoardsView.__super__.initialize.apply(this, arguments);
       console.debug('BoardsView#initialize', this.el, this.$el, options);
-      return this.delegate('submit', 'form.boards', this.save);
+      this.delegate('submit', 'form.boards', this.create);
+      return this.delegate('click', 'i.delete', this["delete"]);
     };
 
-    BoardsView.prototype.save = function(event) {
+    BoardsView.prototype.create = function(event) {
       event.preventDefault();
       console.debug('BoardsView#save', event);
-      console.debug(this.board);
       return this.collection.create({
         'alias': $('input#board-alias').val(),
         'title': $('input#board-title').val(),
         'description': $('input#board-description').val()
       });
+    };
+
+    BoardsView.prototype["delete"] = function(event) {
+      var board, cid, result;
+      event.preventDefault();
+      console.debug('BoardsView#delete', event);
+      cid = $(event.target).parents('div.board').data('cid');
+      console.debug('BoardsView#delete - alias ', cid);
+      board = this.collection.getByCid(cid);
+      console.debug('BoardsView#delete - board before', board);
+      result = board.destroy({
+        success: function(model, response) {
+          console.debug('BoardsView#delete - board desctroy success model', model);
+          return console.debug('BoardsView#delete - board desctroy success response', response);
+        },
+        error: function(model, response) {
+          console.debug('BoardsView#delete - board desctroy error model', model);
+          return console.debug('BoardsView#delete - board desctroy error response', response);
+        }
+      });
+      console.debug('BoardsView#delete - result', result);
+      return console.debug('BoardsView#delete - board after', board);
     };
 
     BoardsView.prototype.template = template;
@@ -1547,30 +1574,33 @@ window.require.define({"views/templates/board": function(exports, require, modul
     var buffer = "", stack1, foundHelper, self=this, functionType="function", helperMissing=helpers.helperMissing, undef=void 0, escapeExpression=this.escapeExpression;
 
 
-    buffer += "<div class=\"well board-";
+    buffer += "<div class=\"well board\" data-cid=\"";
     foundHelper = helpers.board;
     stack1 = foundHelper || depth0.board;
+    stack1 = (stack1 === null || stack1 === undefined || stack1 === false ? stack1 : stack1.cid);
+    if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
+    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "board.cid", { hash: {} }); }
+    buffer += escapeExpression(stack1) + "\">\r\n  <i class=\"icon-remove pull-right delete\"></i>\r\n  <i class=\"icon-pencil pull-right\"></i>\r\n  <p>";
+    foundHelper = helpers.board;
+    stack1 = foundHelper || depth0.board;
+    stack1 = (stack1 === null || stack1 === undefined || stack1 === false ? stack1 : stack1.attributes);
     stack1 = (stack1 === null || stack1 === undefined || stack1 === false ? stack1 : stack1.alias);
     if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
-    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "board.alias", { hash: {} }); }
-    buffer += escapeExpression(stack1) + "\">\r\n    <p>";
+    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "board.attributes.alias", { hash: {} }); }
+    buffer += escapeExpression(stack1) + "</p>\r\n  <p>";
     foundHelper = helpers.board;
     stack1 = foundHelper || depth0.board;
-    stack1 = (stack1 === null || stack1 === undefined || stack1 === false ? stack1 : stack1.alias);
-    if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
-    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "board.alias", { hash: {} }); }
-    buffer += escapeExpression(stack1) + "</p>\r\n    <p>";
-    foundHelper = helpers.board;
-    stack1 = foundHelper || depth0.board;
+    stack1 = (stack1 === null || stack1 === undefined || stack1 === false ? stack1 : stack1.attributes);
     stack1 = (stack1 === null || stack1 === undefined || stack1 === false ? stack1 : stack1.title);
     if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
-    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "board.title", { hash: {} }); }
-    buffer += escapeExpression(stack1) + "</p>\r\n    <p>";
+    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "board.attributes.title", { hash: {} }); }
+    buffer += escapeExpression(stack1) + "</p>\r\n  <p>";
     foundHelper = helpers.board;
     stack1 = foundHelper || depth0.board;
+    stack1 = (stack1 === null || stack1 === undefined || stack1 === false ? stack1 : stack1.attributes);
     stack1 = (stack1 === null || stack1 === undefined || stack1 === false ? stack1 : stack1.description);
     if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
-    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "board.description", { hash: {} }); }
+    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "board.attributes.description", { hash: {} }); }
     buffer += escapeExpression(stack1) + "</p>\r\n</div>";
     return buffer;});
 }});

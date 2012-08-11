@@ -7,18 +7,36 @@ module.exports = class BoardsView extends CollectionView
   initialize: (options) ->
     super
     console.debug 'BoardsView#initialize', @el, @$el, options
-    @delegate('submit', 'form.boards', @save)
+    @delegate('submit', 'form.boards', @create)
+    @delegate('click', 'i.delete', @delete)
 
-  save: (event) =>
+  create: (event) =>
     event.preventDefault()
     console.debug 'BoardsView#save', event
-
-    console.debug @board
     @collection.create({
       'alias': $('input#board-alias').val(),
       'title': $('input#board-title').val(),
       'description': $('input#board-description').val()
     })
+
+  delete: (event) =>
+    event.preventDefault()
+    console.debug 'BoardsView#delete', event
+    cid = $(event.target).parents('div.board').data('cid')
+    console.debug 'BoardsView#delete - alias ', cid
+    board = @collection.getByCid(cid)
+    console.debug 'BoardsView#delete - board before', board
+    result = board.destroy({
+      success: (model, response) ->
+        console.debug 'BoardsView#delete - board desctroy success model', model
+        console.debug 'BoardsView#delete - board desctroy success response', response
+      error: (model, response) ->
+        console.debug 'BoardsView#delete - board desctroy error model', model
+        console.debug 'BoardsView#delete - board desctroy error response', response
+      })
+    console.debug 'BoardsView#delete - result', result
+    console.debug 'BoardsView#delete - board after', board
+    #@collection.remove(board)
 
   template: template
 
