@@ -1263,7 +1263,8 @@ window.require.define({"views/board_view": function(exports, require, module) {
 }});
 
 window.require.define({"views/boards_view": function(exports, require, module) {
-  var BoardView, BoardsView, CollectionView, template,
+  var Board, BoardView, BoardsView, CollectionView, template,
+    __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
@@ -1273,17 +1274,39 @@ window.require.define({"views/boards_view": function(exports, require, module) {
 
   BoardView = require('views/board_view');
 
+  Board = require('models/board');
+
   module.exports = BoardsView = (function(_super) {
 
     __extends(BoardsView, _super);
 
     function BoardsView() {
+      this.save = __bind(this.save, this);
       return BoardsView.__super__.constructor.apply(this, arguments);
     }
+
+    BoardsView.prototype.initialize = function(options) {
+      BoardsView.__super__.initialize.apply(this, arguments);
+      console.debug('BoardsView#initialize', this.el, this.$el, options);
+      return this.delegate('submit', 'form.boards', this.save);
+    };
+
+    BoardsView.prototype.save = function(event) {
+      event.preventDefault();
+      console.debug('BoardsView#save', event);
+      console.debug(this.board);
+      return this.collection.create({
+        'alias': $('input#board-alias').val(),
+        'title': $('input#board-title').val(),
+        'description': $('input#board-description').val()
+      });
+    };
 
     BoardsView.prototype.template = template;
 
     BoardsView.prototype.itemView = BoardView;
+
+    BoardsView.prototype.listSelector = 'div.boards';
 
     BoardsView.prototype.container = '#page-container';
 
@@ -1555,34 +1578,10 @@ window.require.define({"views/templates/board": function(exports, require, modul
 window.require.define({"views/templates/boards": function(exports, require, module) {
   module.exports = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
     helpers = helpers || Handlebars.helpers;
-    var stack1, stack2, foundHelper, tmp1, self=this, functionType="function", helperMissing=helpers.helperMissing, undef=void 0, escapeExpression=this.escapeExpression;
+    var foundHelper, self=this;
 
-  function program1(depth0,data) {
-    
-    var buffer = "", stack1;
-    buffer += "\r\n  <a class=\"header-link\" href=\"";
-    foundHelper = helpers.alias;
-    stack1 = foundHelper || depth0.alias;
-    if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
-    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "alias", { hash: {} }); }
-    buffer += escapeExpression(stack1) + "\">";
-    foundHelper = helpers.title;
-    stack1 = foundHelper || depth0.title;
-    if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
-    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "title", { hash: {} }); }
-    buffer += escapeExpression(stack1) + "</a>\r\n";
-    return buffer;}
 
-    foundHelper = helpers.items;
-    stack1 = foundHelper || depth0.items;
-    stack2 = helpers.each;
-    tmp1 = self.program(1, program1, data);
-    tmp1.hash = {};
-    tmp1.fn = tmp1;
-    tmp1.inverse = self.noop;
-    stack1 = stack2.call(depth0, stack1, tmp1);
-    if(stack1 || stack1 === 0) { return stack1; }
-    else { return ''; }});
+    return "<div class=\"boards-container\">\r\n  <form class=\"boards form-horizontal\">\r\n    <fieldset>\r\n      <legend>Create board</legend>\r\n      <div class=\"control-group\">\r\n        <label class=\"control-label\" for=\"board-alias\">Alias</label>\r\n        <div class=\"controls\">\r\n          <input id=\"board-alias\"\r\n            name=\"alias\"\r\n            type=\"text\"\r\n            placeholder=\"Alias\"\r\n            class=\"input-xlarge\"/>\r\n        </div>\r\n      </div>\r\n      <div class=\"control-group\">\r\n        <label class=\"control-label\" for=\"board-title\">Title</label>\r\n        <div class=\"controls\">\r\n          <input id=\"board-title\"\r\n            name=\"title\"\r\n            type=\"text\"\r\n            placeholder=\"Title\"\r\n            class=\"input-xlarge\"/>\r\n        </div>\r\n      </div>\r\n      <div class=\"control-group\">\r\n        <label class=\"control-label\" for=\"board-description\">Description</label>\r\n        <div class=\"controls\">\r\n          <input id=\"board-description\"\r\n            name=\"description\"\r\n            type=\"text\"\r\n            placeholder=\"Description\"\r\n            class=\"input-xlarge\"/>\r\n        </div>\r\n      </div>\r\n      <div class=\"form-actions\">\r\n        <input class=\"btn btn-primary board-submit\" type=\"submit\" value=\"Create board\"/>\r\n      </div>\r\n    </fieldset>\r\n  </form>\r\n  <div class=\"boards\">\r\n  </div>\r\n</div>";});
 }});
 
 window.require.define({"views/templates/header": function(exports, require, module) {
