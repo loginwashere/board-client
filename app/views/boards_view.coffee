@@ -4,12 +4,23 @@ BoardView = require 'views/board_view'
 Board = require 'models/board'
 
 module.exports = class BoardsView extends CollectionView
+
+  template: template
+
+  itemView: BoardView
+
+  listSelector: 'div.boards'
+
+  container: '#page-container'
+
+  autoRender: yes
+
   initialize: (options) ->
     super
     console.debug 'BoardsView#initialize', @el, @$el, options
     @delegate('submit', 'form.board-create', @create)
-    @delegate('click', 'i.board-delete', @delete)
-    @delegate('click', 'i.board-edit', @toggleEdit)
+    @delegate('click', 'button.board-delete', @delete)
+    @delegate('click', 'button.board-edit', @toggleEdit)
     @delegate('submit', 'form.board-edit', @edit)
 
   create: (event) =>
@@ -65,16 +76,6 @@ module.exports = class BoardsView extends CollectionView
 
     console.debug 'BoardsView#edit - board after', board
 
-  template: template
-
-  itemView: BoardView
-
-  listSelector: 'div.boards'
-
-  container: '#page-container'
-
-  autoRender: yes
-  
   # The most important method a class derived from CollectionView
   # must overwrite.
   getView: (item) ->

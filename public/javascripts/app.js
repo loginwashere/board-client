@@ -1304,12 +1304,22 @@ window.require.define({"views/boards_view": function(exports, require, module) {
       return BoardsView.__super__.constructor.apply(this, arguments);
     }
 
+    BoardsView.prototype.template = template;
+
+    BoardsView.prototype.itemView = BoardView;
+
+    BoardsView.prototype.listSelector = 'div.boards';
+
+    BoardsView.prototype.container = '#page-container';
+
+    BoardsView.prototype.autoRender = true;
+
     BoardsView.prototype.initialize = function(options) {
       BoardsView.__super__.initialize.apply(this, arguments);
       console.debug('BoardsView#initialize', this.el, this.$el, options);
       this.delegate('submit', 'form.board-create', this.create);
-      this.delegate('click', 'i.board-delete', this["delete"]);
-      this.delegate('click', 'i.board-edit', this.toggleEdit);
+      this.delegate('click', 'button.board-delete', this["delete"]);
+      this.delegate('click', 'button.board-edit', this.toggleEdit);
       return this.delegate('submit', 'form.board-edit', this.edit);
     };
 
@@ -1373,16 +1383,6 @@ window.require.define({"views/boards_view": function(exports, require, module) {
       });
       return console.debug('BoardsView#edit - board after', board);
     };
-
-    BoardsView.prototype.template = template;
-
-    BoardsView.prototype.itemView = BoardView;
-
-    BoardsView.prototype.listSelector = 'div.boards';
-
-    BoardsView.prototype.container = '#page-container';
-
-    BoardsView.prototype.autoRender = true;
 
     BoardsView.prototype.getView = function(item) {
       return new BoardView({
@@ -1625,7 +1625,7 @@ window.require.define({"views/templates/board": function(exports, require, modul
     stack1 = (stack1 === null || stack1 === undefined || stack1 === false ? stack1 : stack1.cid);
     if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
     else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "board.cid", { hash: {} }); }
-    buffer += escapeExpression(stack1) + "\">\r\n  <i class=\"icon-remove pull-right board-delete\"></i>\r\n  <i class=\"icon-pencil pull-right board-edit\"></i>\r\n  <div class=\"board-view\">\r\n    <p>";
+    buffer += escapeExpression(stack1) + "\">\r\n  <button class=\"btn btn-danger pull-right board-delete\"><i class=\"icon-remove icon-white\"></i></button>\r\n  <button class=\"btn btn-primary pull-right board-edit\"><i class=\"icon-pencil icon-white\"></i></button>\r\n  <div class=\"board-view\">\r\n    <p>";
     foundHelper = helpers.board;
     stack1 = foundHelper || depth0.board;
     stack1 = (stack1 === null || stack1 === undefined || stack1 === false ? stack1 : stack1.attributes);
