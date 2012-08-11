@@ -1,7 +1,47 @@
 <div class="well board" data-cid="{{board.cid}}">
-  <i class="icon-remove pull-right delete"></i>
-  <i class="icon-pencil pull-right"></i>
-  <p>{{board.attributes.alias}}</p>
-  <p>{{board.attributes.title}}</p>
-  <p>{{board.attributes.description}}</p>
+  <i class="icon-remove pull-right board-delete"></i>
+  <i class="icon-pencil pull-right board-edit"></i>
+  <div class="board-view">
+    <p>{{board.attributes.alias}}</p>
+    <p>{{board.attributes.title}}</p>
+    <p>{{board.attributes.description}}</p>
+  </div>
+  <div class="board-edit-view hidden">
+    <form class="board-edit form-horizontal">
+      <div class="control-group">
+        <label class="control-label" for="board-alias">Alias</label>
+        <div class="controls">
+          <input type="text" 
+            name="alias" 
+            class="input-xlarge alias"
+            value="{{board.attributes.alias}}" 
+            placeholder="Alias"/>
+        </div>
+      </div>
+      <div class="control-group">
+        <label class="control-label" for="board-alias">Title</label>
+        <div class="controls">
+          <input type="text" 
+            name="title" 
+            class="input-xlarge title"
+            value="{{board.attributes.title}}" 
+            placeholder="Title"/>
+        </div>
+      </div>
+      <div class="control-group">
+        <label class="control-label" for="board-alias">Description</label>
+        <div class="controls">
+          <input type="text" 
+            name="description" 
+            class="input-xlarge description"
+            value="{{board.attributes.description}}" 
+            placeholder="Description"/>
+        </div>
+      </div>
+      <div class="form-actions">
+        <input class="btn btn-primary board-edit-submit" type="submit" value="Save board"/>
+        <input class="btn btn-inverse" type="reset" value="Reset"/>
+      </div>
+    </form>
+  </div>
 </div>
