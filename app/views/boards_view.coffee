@@ -17,7 +17,9 @@ module.exports = class BoardsView extends CollectionView
       'alias': $('input#board-alias').val(),
       'title': $('input#board-title').val(),
       'description': $('input#board-description').val()
-    })
+    },{
+      'wait': true
+      })
 
   delete: (event) =>
     event.preventDefault()

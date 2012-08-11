@@ -861,6 +861,16 @@ window.require.define({"models/board": function(exports, require, module) {
       return Board.__super__.constructor.apply(this, arguments);
     }
 
+    Board.prototype.parse = function(response) {
+      var _ref;
+      console.log('Board - parse - response', response);
+      if ((response != null ? (_ref = response.response) != null ? _ref.boards : void 0 : void 0) != null) {
+        return response.response.boards[0];
+      } else {
+        return response;
+      }
+    };
+
     return Board;
 
   })(Model);
@@ -1304,6 +1314,8 @@ window.require.define({"views/boards_view": function(exports, require, module) {
         'alias': $('input#board-alias').val(),
         'title': $('input#board-title').val(),
         'description': $('input#board-description').val()
+      }, {
+        'wait': true
       });
     };
 
