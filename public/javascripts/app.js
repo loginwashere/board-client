@@ -225,7 +225,9 @@ window.require.define({"controllers/boards_controller": function(exports, requir
       this.view = new BoardsView({
         collection: this.collection
       });
-      this.collection.fetch();
+      this.collection.fetch({
+        url: this.collection.url() + '/' + this.currentId
+      });
       this.threadsCollection = new Threads({
         boardId: this.currentId
       });
@@ -912,46 +914,22 @@ window.require.define({"models/boards": function(exports, require, module) {
     Boards.prototype.model = Board;
 
     Boards.prototype.initialize = function(attributes, options) {
-      Boards.__super__.initialize.apply(this, arguments);
       console.debug('Boards#initialize - attributes', attributes);
       if ((attributes != null ? attributes.boardId : void 0) != null) {
         console.debug('attributes.boardId', attributes.boardId);
-        return this.boardId = attributes.boardId;
+        this.boardId = attributes.boardId;
       }
+      return Boards.__super__.initialize.apply(this, arguments);
     };
 
     Boards.prototype.url = function(method) {
       var url;
       url = config.api.root + '/boards';
-      switch (method) {
-        case 'read':
-        case 'delete':
-        case 'update':
-          if (this.boardId != null) {
-            url += '/' + this.boardId;
-          }
-          break;
-        case 'create':
-          url;
-
-          break;
-        default:
-          url;
-
-      }
       console.debug('Boards - url - @boardId ', this.boardId);
       console.debug('Boards - url - @boardId? ', this.boardId != null);
       console.debug('Boards - url - method ', method);
       console.debug('Boards - url - url ', url);
       return url;
-    };
-
-    Boards.prototype.sync = function(method, model, options) {
-      this.url(method);
-      Backbone.sync(method, model, options);
-      console.debug('Boards#sync - method ', method);
-      console.debug('Boards#sync - model ', model);
-      return console.debug('Boards#sync - options ', options);
     };
 
     Boards.prototype.parse = function(response) {
@@ -1061,6 +1039,16 @@ window.require.define({"models/thread": function(exports, require, module) {
     function Thread() {
       return Thread.__super__.constructor.apply(this, arguments);
     }
+
+    Thread.prototype.parse = function(response) {
+      var _ref;
+      console.log('Thread - parse - response', response);
+      if ((response != null ? (_ref = response.response) != null ? _ref.threads : void 0 : void 0) != null) {
+        return response.response.threads[0];
+      } else {
+        return response;
+      }
+    };
 
     return Thread;
 
@@ -1356,7 +1344,7 @@ window.require.define({"views/boards_view": function(exports, require, module) {
       console.debug('BoardsView#initialize', this.el, this.$el, options);
       this.delegate('submit', 'form.board-create', this.create);
       this.delegate('click', 'button.board-delete', this["delete"]);
-      this.delegate('click', 'button.board-edit', this.toggleEdit);
+      this.delegate('click', 'button.item-edit', this.toggleEdit);
       return this.delegate('submit', 'form.board-edit', this.edit);
     };
 
@@ -1400,8 +1388,7 @@ window.require.define({"views/boards_view": function(exports, require, module) {
 
     BoardsView.prototype.toggleEdit = function(event) {
       console.debug('BoardsView#toggleEdit', event);
-      $(event.target).parents('div.board').find('div.board-view').toggleClass('hidden');
-      return $(event.target).parents('div.board').find('div.board-edit-view').toggleClass('hidden');
+      return $(event.target).closest('div.container').find('div.view').toggleClass('hidden').end().find('div.edit-view').toggleClass('hidden');
     };
 
     BoardsView.prototype.edit = function(edit) {
@@ -1411,7 +1398,7 @@ window.require.define({"views/boards_view": function(exports, require, module) {
       console.debug('BoardsView#edit', event);
       boardContainer = $(event.target).parents('div.board');
       cid = boardContainer.data('cid');
-      console.debug('BoardsView#edit - alias ', cid);
+      console.debug('BoardsView#edit - cid ', cid);
       board = this.collection.getByCid(cid);
       console.debug('BoardsView#edit - board before', board);
       board.set({
@@ -1420,7 +1407,9 @@ window.require.define({"views/boards_view": function(exports, require, module) {
       });
       console.debug('BoardsView#edit - board before', board);
       board.save().done(function(response) {
-        return _this.collection.fetch();
+        return _this.collection.fetch({
+          url: _this.collection.url() + '/' + board.get('id')
+        });
       });
       return console.debug('BoardsView#edit - board after', board);
     };
@@ -1660,13 +1649,13 @@ window.require.define({"views/templates/board": function(exports, require, modul
     var buffer = "", stack1, foundHelper, self=this, functionType="function", helperMissing=helpers.helperMissing, undef=void 0, escapeExpression=this.escapeExpression;
 
 
-    buffer += "<div class=\"well board\" data-cid=\"";
+    buffer += "<div class=\"well board container\" data-cid=\"";
     foundHelper = helpers.board;
     stack1 = foundHelper || depth0.board;
     stack1 = (stack1 === null || stack1 === undefined || stack1 === false ? stack1 : stack1.cid);
     if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
     else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "board.cid", { hash: {} }); }
-    buffer += escapeExpression(stack1) + "\">\r\n  <button class=\"btn btn-danger pull-right board-delete\"><i class=\"icon-remove icon-white\"></i></button>\r\n  <button class=\"btn btn-primary pull-right board-edit\"><i class=\"icon-pencil icon-white\"></i></button>\r\n  <div class=\"board-view\">\r\n    <p><a href=\"/boards/";
+    buffer += escapeExpression(stack1) + "\">\r\n  <button class=\"btn btn-danger pull-right board-delete\"><i class=\"icon-remove icon-white\"></i></button>\r\n  <button class=\"btn btn-primary pull-right item-edit\"><i class=\"icon-pencil icon-white\"></i></button>\r\n  <div class=\"view\">\r\n    <p><a href=\"/boards/";
     foundHelper = helpers.board;
     stack1 = foundHelper || depth0.board;
     stack1 = (stack1 === null || stack1 === undefined || stack1 === false ? stack1 : stack1.attributes);
@@ -1694,21 +1683,21 @@ window.require.define({"views/templates/board": function(exports, require, modul
     stack1 = (stack1 === null || stack1 === undefined || stack1 === false ? stack1 : stack1.description);
     if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
     else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "board.attributes.description", { hash: {} }); }
-    buffer += escapeExpression(stack1) + "</p>\r\n  </div>\r\n  <div class=\"board-edit-view hidden\">\r\n    <form class=\"board-edit form-horizontal\">\r\n      <div class=\"control-group\">\r\n        <label class=\"control-label\" for=\"board-alias\">Alias</label>\r\n        <div class=\"controls\">\r\n          <input type=\"text\" \r\n            name=\"alias\" \r\n            class=\"input-xlarge alias\"\r\n            value=\"";
+    buffer += escapeExpression(stack1) + "</p>\r\n  </div>\r\n  <div class=\"edit-view hidden\">\r\n    <form class=\"board-edit form-horizontal\">\r\n      <div class=\"control-group\">\r\n        <label class=\"control-label\" for=\"board-alias\">Alias</label>\r\n        <div class=\"controls\">\r\n          <input type=\"text\" \r\n            name=\"alias\" \r\n            class=\"input-xlarge alias\"\r\n            value=\"";
     foundHelper = helpers.board;
     stack1 = foundHelper || depth0.board;
     stack1 = (stack1 === null || stack1 === undefined || stack1 === false ? stack1 : stack1.attributes);
     stack1 = (stack1 === null || stack1 === undefined || stack1 === false ? stack1 : stack1.alias);
     if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
     else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "board.attributes.alias", { hash: {} }); }
-    buffer += escapeExpression(stack1) + "\" \r\n            placeholder=\"Alias\"/>\r\n        </div>\r\n      </div>\r\n      <div class=\"control-group\">\r\n        <label class=\"control-label\" for=\"board-alias\">Title</label>\r\n        <div class=\"controls\">\r\n          <input type=\"text\" \r\n            name=\"title\" \r\n            class=\"input-xlarge title\"\r\n            value=\"";
+    buffer += escapeExpression(stack1) + "\" \r\n            placeholder=\"Alias\"/>\r\n        </div>\r\n      </div>\r\n      <div class=\"control-group\">\r\n        <label class=\"control-label\" for=\"board-title\">Title</label>\r\n        <div class=\"controls\">\r\n          <input type=\"text\" \r\n            name=\"title\" \r\n            class=\"input-xlarge title\"\r\n            value=\"";
     foundHelper = helpers.board;
     stack1 = foundHelper || depth0.board;
     stack1 = (stack1 === null || stack1 === undefined || stack1 === false ? stack1 : stack1.attributes);
     stack1 = (stack1 === null || stack1 === undefined || stack1 === false ? stack1 : stack1.title);
     if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
     else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "board.attributes.title", { hash: {} }); }
-    buffer += escapeExpression(stack1) + "\" \r\n            placeholder=\"Title\"/>\r\n        </div>\r\n      </div>\r\n      <div class=\"control-group\">\r\n        <label class=\"control-label\" for=\"board-alias\">Description</label>\r\n        <div class=\"controls\">\r\n          <input type=\"text\" \r\n            name=\"description\" \r\n            class=\"input-xlarge description\"\r\n            value=\"";
+    buffer += escapeExpression(stack1) + "\" \r\n            placeholder=\"Title\"/>\r\n        </div>\r\n      </div>\r\n      <div class=\"control-group\">\r\n        <label class=\"control-label\" for=\"board-description\">Description</label>\r\n        <div class=\"controls\">\r\n          <input type=\"text\" \r\n            name=\"description\" \r\n            class=\"input-xlarge description\"\r\n            value=\"";
     foundHelper = helpers.board;
     stack1 = foundHelper || depth0.board;
     stack1 = (stack1 === null || stack1 === undefined || stack1 === false ? stack1 : stack1.attributes);
@@ -1810,14 +1799,13 @@ window.require.define({"views/templates/thread": function(exports, require, modu
     var buffer = "", stack1, foundHelper, self=this, functionType="function", helperMissing=helpers.helperMissing, undef=void 0, escapeExpression=this.escapeExpression;
 
 
-    buffer += "<div class=\"well thread-";
+    buffer += "<div class=\"well thread container\" data-cid=\"";
     foundHelper = helpers.thread;
     stack1 = foundHelper || depth0.thread;
-    stack1 = (stack1 === null || stack1 === undefined || stack1 === false ? stack1 : stack1.attributes);
-    stack1 = (stack1 === null || stack1 === undefined || stack1 === false ? stack1 : stack1.id);
+    stack1 = (stack1 === null || stack1 === undefined || stack1 === false ? stack1 : stack1.cid);
     if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
-    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "thread.attributes.id", { hash: {} }); }
-    buffer += escapeExpression(stack1) + "\">\r\n  <p><a href=\"/boards/";
+    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "thread.cid", { hash: {} }); }
+    buffer += escapeExpression(stack1) + "\">\r\n  <button class=\"btn btn-danger pull-right thread-delete\"><i class=\"icon-remove icon-white\"></i></button>\r\n  <button class=\"btn btn-primary pull-right item-edit\"><i class=\"icon-pencil icon-white\"></i></button>\r\n  <div class=\"view\">\r\n    <p><a href=\"/boards/";
     foundHelper = helpers.boardId;
     stack1 = foundHelper || depth0.boardId;
     if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
@@ -1836,21 +1824,47 @@ window.require.define({"views/templates/thread": function(exports, require, modu
     stack1 = (stack1 === null || stack1 === undefined || stack1 === false ? stack1 : stack1.id);
     if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
     else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "thread.attributes.id", { hash: {} }); }
-    buffer += escapeExpression(stack1) + "</a></p>\r\n  <p>";
+    buffer += escapeExpression(stack1) + "</a></p>\r\n    <p>";
     foundHelper = helpers.thread;
     stack1 = foundHelper || depth0.thread;
     stack1 = (stack1 === null || stack1 === undefined || stack1 === false ? stack1 : stack1.attributes);
     stack1 = (stack1 === null || stack1 === undefined || stack1 === false ? stack1 : stack1.title);
     if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
     else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "thread.attributes.title", { hash: {} }); }
-    buffer += escapeExpression(stack1) + "</p>\r\n  <p>";
+    buffer += escapeExpression(stack1) + "</p>\r\n    <p>";
     foundHelper = helpers.thread;
     stack1 = foundHelper || depth0.thread;
     stack1 = (stack1 === null || stack1 === undefined || stack1 === false ? stack1 : stack1.attributes);
     stack1 = (stack1 === null || stack1 === undefined || stack1 === false ? stack1 : stack1.description);
     if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
     else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "thread.attributes.description", { hash: {} }); }
-    buffer += escapeExpression(stack1) + "</p>\r\n</div>";
+    buffer += escapeExpression(stack1) + "</p>\r\n  </div>\r\n  <div class=\"edit-view hidden\">\r\n    <form class=\"thread-edit form-horizontal\">\r\n      <div class=\"control-group\">\r\n        <label class=\"control-label\" for=\"thread-title\">Title</label>\r\n        <div class=\"controls\">\r\n          <input type=\"text\" \r\n            name=\"title\" \r\n            class=\"input-xlarge title\"\r\n            value=\"";
+    foundHelper = helpers.thread;
+    stack1 = foundHelper || depth0.thread;
+    stack1 = (stack1 === null || stack1 === undefined || stack1 === false ? stack1 : stack1.attributes);
+    stack1 = (stack1 === null || stack1 === undefined || stack1 === false ? stack1 : stack1.title);
+    if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
+    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "thread.attributes.title", { hash: {} }); }
+    buffer += escapeExpression(stack1) + "\" \r\n            placeholder=\"Title\"/>\r\n        </div>\r\n      </div>\r\n      <div class=\"control-group\">\r\n        <label class=\"control-label\" for=\"thread-description\">Description</label>\r\n        <div class=\"controls\">\r\n          <input type=\"text\" \r\n            name=\"description\" \r\n            class=\"input-xlarge description\"\r\n            value=\"";
+    foundHelper = helpers.thread;
+    stack1 = foundHelper || depth0.thread;
+    stack1 = (stack1 === null || stack1 === undefined || stack1 === false ? stack1 : stack1.attributes);
+    stack1 = (stack1 === null || stack1 === undefined || stack1 === false ? stack1 : stack1.description);
+    if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
+    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "thread.attributes.description", { hash: {} }); }
+    buffer += escapeExpression(stack1) + "\" \r\n            placeholder=\"Description\"/>\r\n        </div>\r\n      </div>\r\n      <div class=\"form-actions\">\r\n        <input class=\"btn btn-primary thread-edit-submit\" type=\"submit\" value=\"Save thread\"/>\r\n        <input class=\"btn btn-inverse thread-edit-reset\" type=\"reset\" value=\"Reset\"/>\r\n      </div>\r\n    </form>\r\n  </div>\r\n</div>\r\n<div class=\"board-";
+    foundHelper = helpers.boardId;
+    stack1 = foundHelper || depth0.boardId;
+    if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
+    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "boardId", { hash: {} }); }
+    buffer += escapeExpression(stack1) + "-thread-";
+    foundHelper = helpers.thread;
+    stack1 = foundHelper || depth0.thread;
+    stack1 = (stack1 === null || stack1 === undefined || stack1 === false ? stack1 : stack1.attributes);
+    stack1 = (stack1 === null || stack1 === undefined || stack1 === false ? stack1 : stack1.id);
+    if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
+    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "thread.attributes.id", { hash: {} }); }
+    buffer += escapeExpression(stack1) + "\"></div>";
     return buffer;});
 }});
 
@@ -1860,7 +1874,7 @@ window.require.define({"views/templates/threads": function(exports, require, mod
     var foundHelper, self=this;
 
 
-    return "<div class=\"threads-container\">\r\n  <form class=\"board-create form-horizontal\">\r\n    <fieldset>\r\n      <legend>Create board</legend>\r\n      <div class=\"control-group\">\r\n        <label class=\"control-label\" for=\"board-alias\">Alias</label>\r\n        <div class=\"controls\">\r\n          <input id=\"board-alias\"\r\n            name=\"alias\"\r\n            type=\"text\"\r\n            placeholder=\"Alias\"\r\n            class=\"input-xlarge\"/>\r\n        </div>\r\n      </div>\r\n      <div class=\"control-group\">\r\n        <label class=\"control-label\" for=\"board-title\">Title</label>\r\n        <div class=\"controls\">\r\n          <input id=\"board-title\"\r\n            name=\"title\"\r\n            type=\"text\"\r\n            placeholder=\"Title\"\r\n            class=\"input-xlarge\"/>\r\n        </div>\r\n      </div>\r\n      <div class=\"control-group\">\r\n        <label class=\"control-label\" for=\"board-description\">Description</label>\r\n        <div class=\"controls\">\r\n          <input id=\"board-description\"\r\n            name=\"description\"\r\n            type=\"text\"\r\n            placeholder=\"Description\"\r\n            class=\"input-xlarge\"/>\r\n        </div>\r\n      </div>\r\n      <div class=\"form-actions\">\r\n        <input class=\"btn btn-primary board-create-submit\" type=\"submit\" value=\"Create board\"/>\r\n      </div>\r\n    </fieldset>\r\n  </form>\r\n  <div class=\"threads\"></div>\r\n</div>\r\n";});
+    return "<div class=\"threads-container\">\r\n  <form class=\"thread-create form-horizontal\">\r\n    <fieldset>\r\n      <legend>Create thread</legend>\r\n      <div class=\"control-group\">\r\n        <label class=\"control-label\" for=\"thread-title\">Title</label>\r\n        <div class=\"controls\">\r\n          <input id=\"thread-title\"\r\n            name=\"title\"\r\n            type=\"text\"\r\n            placeholder=\"Title\"\r\n            class=\"input-xlarge\"/>\r\n        </div>\r\n      </div>\r\n      <div class=\"control-group\">\r\n        <label class=\"control-label\" for=\"thread-description\">Description</label>\r\n        <div class=\"controls\">\r\n          <input id=\"thread-description\"\r\n            name=\"description\"\r\n            type=\"text\"\r\n            placeholder=\"Description\"\r\n            class=\"input-xlarge\"/>\r\n        </div>\r\n      </div>\r\n      <div class=\"form-actions\">\r\n        <input class=\"btn btn-primary thread-create-submit\" type=\"submit\" value=\"Create thread\"/>\r\n      </div>\r\n    </fieldset>\r\n  </form>\r\n  <div class=\"threads\"></div>\r\n</div>\r\n";});
 }});
 
 window.require.define({"views/thread_view": function(exports, require, module) {
@@ -1904,6 +1918,7 @@ window.require.define({"views/thread_view": function(exports, require, module) {
 
 window.require.define({"views/threads_view": function(exports, require, module) {
   var CollectionView, ThreadView, ThreadsView, template,
+    __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
@@ -1918,6 +1933,9 @@ window.require.define({"views/threads_view": function(exports, require, module) 
     __extends(ThreadsView, _super);
 
     function ThreadsView() {
+      this.toggleEdit = __bind(this.toggleEdit, this);
+
+      this.create = __bind(this.create, this);
       return ThreadsView.__super__.constructor.apply(this, arguments);
     }
 
@@ -1936,7 +1954,30 @@ window.require.define({"views/threads_view": function(exports, require, module) 
       console.debug('ThreadsView#initialize - options', options);
       this.boardId = options.collection.boardId;
       this.container = '.board-' + options.collection.boardId + '-threads';
-      return console.debug('ThreadsView#initialize - @container', this.container);
+      console.debug('ThreadsView#initialize - @container', this.container);
+      this.delegate('click', 'button.item-edit', this.toggleEdit);
+      this.delegate('submit', 'form.thread-create', this.create);
+      return console.debug('ThreadsView - @collection ', this.collection);
+    };
+
+    ThreadsView.prototype.create = function(event) {
+      var result;
+      event.preventDefault();
+      console.debug('ThreadsView#create', event);
+      result = this.collection.create({
+        'title': $('input#thread-title').val(),
+        'description': $('input#thread-description').val()
+      }, {
+        'wait': true
+      });
+      if (result != null) {
+        return $('input.thread-create-reset').trigger('click');
+      }
+    };
+
+    ThreadsView.prototype.toggleEdit = function(event) {
+      console.debug('ThreadsView#toggleEdit', event);
+      return $(event.target).closest('div.container').find('div.view').toggleClass('hidden').end().find('div.edit-view').toggleClass('hidden');
     };
 
     ThreadsView.prototype.getView = function(item) {

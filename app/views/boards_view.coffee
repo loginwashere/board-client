@@ -20,7 +20,7 @@ module.exports = class BoardsView extends CollectionView
     console.debug 'BoardsView#initialize', @el, @$el, options
     @delegate('submit', 'form.board-create', @create)
     @delegate('click', 'button.board-delete', @delete)
-    @delegate('click', 'button.board-edit', @toggleEdit)
+    @delegate('click', 'button.item-edit', @toggleEdit)
     @delegate('submit', 'form.board-edit', @edit)
 
   create: (event) =>
@@ -56,15 +56,18 @@ module.exports = class BoardsView extends CollectionView
 
   toggleEdit: (event) =>
     console.debug 'BoardsView#toggleEdit', event
-    $(event.target).parents('div.board').find('div.board-view').toggleClass('hidden')
-    $(event.target).parents('div.board').find('div.board-edit-view').toggleClass('hidden')
+    $(event.target)
+      .closest('div.container')
+        .find('div.view').toggleClass('hidden')
+      .end()
+        .find('div.edit-view').toggleClass('hidden')
 
   edit: (edit) =>
     event.preventDefault()
     console.debug 'BoardsView#edit', event
     boardContainer = $(event.target).parents('div.board')
     cid = boardContainer.data('cid')
-    console.debug 'BoardsView#edit - alias ', cid
+    console.debug 'BoardsView#edit - cid ', cid
     board = @collection.getByCid(cid)
     console.debug 'BoardsView#edit - board before', board
     board.set({
@@ -74,7 +77,7 @@ module.exports = class BoardsView extends CollectionView
     console.debug 'BoardsView#edit - board before', board
     board.save()
       .done (response) =>
-        @collection.fetch()
+        @collection.fetch({url: @collection.url() + '/' + board.get('id')})
 
     console.debug 'BoardsView#edit - board after', board
 

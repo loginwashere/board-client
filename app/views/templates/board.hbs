@@ -1,12 +1,12 @@
-<div class="well board" data-cid="{{board.cid}}">
+<div class="well board container" data-cid="{{board.cid}}">
   <button class="btn btn-danger pull-right board-delete"><i class="icon-remove icon-white"></i></button>
-  <button class="btn btn-primary pull-right board-edit"><i class="icon-pencil icon-white"></i></button>
-  <div class="board-view">
+  <button class="btn btn-primary pull-right item-edit"><i class="icon-pencil icon-white"></i></button>
+  <div class="view">
     <p><a href="/boards/{{board.attributes.id}}">{{board.attributes.alias}}</a></p>
     <p>{{board.attributes.title}}</p>
     <p>{{board.attributes.description}}</p>
   </div>
-  <div class="board-edit-view hidden">
+  <div class="edit-view hidden">
     <form class="board-edit form-horizontal">
       <div class="control-group">
         <label class="control-label" for="board-alias">Alias</label>
@@ -19,7 +19,7 @@
         </div>
       </div>
       <div class="control-group">
-        <label class="control-label" for="board-alias">Title</label>
+        <label class="control-label" for="board-title">Title</label>
         <div class="controls">
           <input type="text" 
             name="title" 
@@ -29,7 +29,7 @@
         </div>
       </div>
       <div class="control-group">
-        <label class="control-label" for="board-alias">Description</label>
+        <label class="control-label" for="board-description">Description</label>
         <div class="controls">
           <input type="text" 
             name="description" 

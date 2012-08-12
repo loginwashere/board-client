@@ -1,21 +1,11 @@
 <div class="threads-container">
-  <form class="board-create form-horizontal">
+  <form class="thread-create form-horizontal">
     <fieldset>
-      <legend>Create board</legend>
+      <legend>Create thread</legend>
       <div class="control-group">
-        <label class="control-label" for="board-alias">Alias</label>
+        <label class="control-label" for="thread-title">Title</label>
         <div class="controls">
-          <input id="board-alias"
-            name="alias"
-            type="text"
-            placeholder="Alias"
-            class="input-xlarge"/>
-        </div>
-      </div>
-      <div class="control-group">
-        <label class="control-label" for="board-title">Title</label>
-        <div class="controls">
-          <input id="board-title"
+          <input id="thread-title"
             name="title"
             type="text"
             placeholder="Title"
@@ -23,9 +13,9 @@
         </div>
       </div>
       <div class="control-group">
-        <label class="control-label" for="board-description">Description</label>
+        <label class="control-label" for="thread-description">Description</label>
         <div class="controls">
-          <input id="board-description"
+          <input id="thread-description"
             name="description"
             type="text"
             placeholder="Description"
@@ -33,7 +23,7 @@
         </div>
       </div>
       <div class="form-actions">
-        <input class="btn btn-primary board-create-submit" type="submit" value="Create board"/>
+        <input class="btn btn-primary thread-create-submit" type="submit" value="Create thread"/>
       </div>
     </fieldset>
   </form>

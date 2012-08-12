@@ -1,5 +1,38 @@
-<div class="well thread-{{thread.attributes.id}}">
-  <p><a href="/boards/{{boardId}}/threads/{{thread.attributes.id}}">{{thread.attributes.id}}</a></p>
-  <p>{{thread.attributes.title}}</p>
-  <p>{{thread.attributes.description}}</p>
+<div class="well thread container" data-cid="{{thread.cid}}">
+  <button class="btn btn-danger pull-right thread-delete"><i class="icon-remove icon-white"></i></button>
+  <button class="btn btn-primary pull-right item-edit"><i class="icon-pencil icon-white"></i></button>
+  <div class="view">
+    <p><a href="/boards/{{boardId}}/threads/{{thread.attributes.id}}">{{thread.attributes.id}}</a></p>
+    <p>{{thread.attributes.title}}</p>
+    <p>{{thread.attributes.description}}</p>
+  </div>
+  <div class="edit-view hidden">
+    <form class="thread-edit form-horizontal">
+      <div class="control-group">
+        <label class="control-label" for="thread-title">Title</label>
+        <div class="controls">
+          <input type="text" 
+            name="title" 
+            class="input-xlarge title"
+            value="{{thread.attributes.title}}" 
+            placeholder="Title"/>
+        </div>
+      </div>
+      <div class="control-group">
+        <label class="control-label" for="thread-description">Description</label>
+        <div class="controls">
+          <input type="text" 
+            name="description" 
+            class="input-xlarge description"
+            value="{{thread.attributes.description}}" 
+            placeholder="Description"/>
+        </div>
+      </div>
+      <div class="form-actions">
+        <input class="btn btn-primary thread-edit-submit" type="submit" value="Save thread"/>
+        <input class="btn btn-inverse thread-edit-reset" type="reset" value="Reset"/>
+      </div>
+    </form>
+  </div>
 </div>
+<div class="board-{{boardId}}-thread-{{thread.attributes.id}}"></div>

@@ -25,7 +25,7 @@ module.exports = class BoardsController extends Controller
     @collection = new Boards {boardId: @currentId}
     console.log 'collection: ', @collection
     @view = new BoardsView collection: @collection
-    @collection.fetch()
+    @collection.fetch({url: @collection.url() + '/' + @currentId})
     @threadsCollection = new Threads {boardId: @currentId}
     console.log 'threadsCollection: ', @threadsCollection
     @threadsView = new ThreadsView collection: @threadsCollection
