@@ -19,8 +19,8 @@ module.exports = class Threads extends Collection
     console.debug 'Threads#url - @boardId ', @boardId
     console.debug 'Threads#url - @threadId ', @threadId
     url = config.api.root + '/boards/' + @boardId + '/threads'
-    if @threadId?
-      url = url + '/' + @threadId
+    # if @threadId?
+    #   url = url + '/' + @threadId
     url
 
   parse: (response) ->

@@ -22,4 +22,4 @@ module.exports = class PostsController extends Controller
     @collection = new Posts {boardId: params.boardId, threadId: params.threadId, postId: params.postId}
     console.log 'collection: ', @collection
     @view = new PostsView {collection: @collection, boardId: params.boardId, postId: params.postId}
-    @collection.fetch()
+    @collection.fetch({url: @collection.url() + '/' + params.postId})

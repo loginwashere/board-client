@@ -23,8 +23,8 @@ module.exports = class Posts extends Collection
     console.debug 'Posts#url - @threadId ', @threadId
     console.debug 'Posts#url - @postId ', @postId
     url = config.api.root + '/boards/' + @boardId + '/threads/' + @threadId + '/posts'
-    if @postId?
-      url = url + '/' + @postId
+    # if @postId?
+    #   url = url + '/' + @postId
     url
 
   parse: (response) ->

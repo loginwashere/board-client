@@ -364,7 +364,9 @@ window.require.define({"controllers/posts_controller": function(exports, require
         boardId: params.boardId,
         postId: params.postId
       });
-      return this.collection.fetch();
+      return this.collection.fetch({
+        url: this.collection.url() + '/' + params.postId
+      });
     };
 
     return PostsController;
@@ -574,7 +576,7 @@ window.require.define({"controllers/threads_controller": function(exports, requi
         threadId: this.currentId
       });
       this.collection.fetch({
-        url: this.collection.url()
+        url: this.collection.url() + '/' + this.currentId
       });
       this.postsCollection = new Posts({
         boardId: params.boardId,
@@ -1115,9 +1117,6 @@ window.require.define({"models/posts": function(exports, require, module) {
       console.debug('Posts#url - @threadId ', this.threadId);
       console.debug('Posts#url - @postId ', this.postId);
       url = config.api.root + '/boards/' + this.boardId + '/threads/' + this.threadId + '/posts';
-      if (this.postId != null) {
-        url = url + '/' + this.postId;
-      }
       return url;
     };
 
@@ -1202,9 +1201,6 @@ window.require.define({"models/threads": function(exports, require, module) {
       console.debug('Threads#url - @boardId ', this.boardId);
       console.debug('Threads#url - @threadId ', this.threadId);
       url = config.api.root + '/boards/' + this.boardId + '/threads';
-      if (this.threadId != null) {
-        url = url + '/' + this.threadId;
-      }
       return url;
     };
 
@@ -2077,7 +2073,7 @@ window.require.define({"views/templates/posts": function(exports, require, modul
     var foundHelper, self=this;
 
 
-    return "<div class=\"posts-container\">\r\n  <form class=\"post-create form-horizontal\">\r\n    <fieldset>\r\n      <legend>Create post</legend>\r\n      <div class=\"control-group\">\r\n        <label class=\"control-label\" for=\"post-title\">Title</label>\r\n        <div class=\"controls\">\r\n          <input id=\"post-title\"\r\n            name=\"title\"\r\n            type=\"text\"\r\n            placeholder=\"Title\"\r\n            class=\"input-xlarge\"/>\r\n        </div>\r\n      </div>\r\n      <div class=\"control-group\">\r\n        <label class=\"control-label\" for=\"post-description\">Description</label>\r\n        <div class=\"controls\">\r\n          <input id=\"post-description\"\r\n            name=\"description\"\r\n            type=\"text\"\r\n            placeholder=\"Description\"\r\n            class=\"input-xlarge\"/>\r\n        </div>\r\n      </div>\r\n      <div class=\"form-actions\">\r\n        <input class=\"btn btn-primary post-create-submit\" type=\"submit\" value=\"Create post\"/>\r\n      </div>\r\n    </fieldset>\r\n  </form>\r\n  <div class=\"posts\"></div>\r\n</div>\r\n";});
+    return "<div class=\"posts-container\">\r\n  <form class=\"post-create form-horizontal\">\r\n    <fieldset>\r\n      <legend>Create post</legend>\r\n      <div class=\"control-group\">\r\n        <label class=\"control-label\" for=\"post-title\">Title</label>\r\n        <div class=\"controls\">\r\n          <input id=\"post-title\"\r\n            name=\"title\"\r\n            type=\"text\"\r\n            placeholder=\"Title\"\r\n            class=\"input-xlarge\"/>\r\n        </div>\r\n      </div>\r\n      <div class=\"control-group\">\r\n        <label class=\"control-label\" for=\"post-description\">Description</label>\r\n        <div class=\"controls\">\r\n          <input id=\"post-description\"\r\n            name=\"description\"\r\n            type=\"text\"\r\n            placeholder=\"Description\"\r\n            class=\"input-xlarge\"/>\r\n        </div>\r\n      </div>\r\n      <div class=\"form-actions\">\r\n        <input class=\"btn btn-primary post-create-submit\" type=\"submit\" value=\"Create post\"/>\r\n        <input class=\"btn btn-inverse post-create-reset\" type=\"reset\" value=\"Reset\"/>\r\n      </div>\r\n    </fieldset>\r\n  </form>\r\n  <div class=\"posts\"></div>\r\n</div>\r\n";});
 }});
 
 window.require.define({"views/templates/thread": function(exports, require, module) {
@@ -2161,7 +2157,7 @@ window.require.define({"views/templates/threads": function(exports, require, mod
     var foundHelper, self=this;
 
 
-    return "<div class=\"threads-container\">\r\n  <form class=\"thread-create form-horizontal\">\r\n    <fieldset>\r\n      <legend>Create thread</legend>\r\n      <div class=\"control-group\">\r\n        <label class=\"control-label\" for=\"thread-title\">Title</label>\r\n        <div class=\"controls\">\r\n          <input id=\"thread-title\"\r\n            name=\"title\"\r\n            type=\"text\"\r\n            placeholder=\"Title\"\r\n            class=\"input-xlarge\"/>\r\n        </div>\r\n      </div>\r\n      <div class=\"control-group\">\r\n        <label class=\"control-label\" for=\"thread-description\">Description</label>\r\n        <div class=\"controls\">\r\n          <input id=\"thread-description\"\r\n            name=\"description\"\r\n            type=\"text\"\r\n            placeholder=\"Description\"\r\n            class=\"input-xlarge\"/>\r\n        </div>\r\n      </div>\r\n      <div class=\"form-actions\">\r\n        <input class=\"btn btn-primary thread-create-submit\" type=\"submit\" value=\"Create thread\"/>\r\n      </div>\r\n    </fieldset>\r\n  </form>\r\n  <div class=\"threads\"></div>\r\n</div>\r\n";});
+    return "<div class=\"threads-container\">\r\n  <form class=\"thread-create form-horizontal\">\r\n    <fieldset>\r\n      <legend>Create thread</legend>\r\n      <div class=\"control-group\">\r\n        <label class=\"control-label\" for=\"thread-title\">Title</label>\r\n        <div class=\"controls\">\r\n          <input id=\"thread-title\"\r\n            name=\"title\"\r\n            type=\"text\"\r\n            placeholder=\"Title\"\r\n            class=\"input-xlarge\"/>\r\n        </div>\r\n      </div>\r\n      <div class=\"control-group\">\r\n        <label class=\"control-label\" for=\"thread-description\">Description</label>\r\n        <div class=\"controls\">\r\n          <input id=\"thread-description\"\r\n            name=\"description\"\r\n            type=\"text\"\r\n            placeholder=\"Description\"\r\n            class=\"input-xlarge\"/>\r\n        </div>\r\n      </div>\r\n      <div class=\"form-actions\">\r\n        <input class=\"btn btn-primary thread-create-submit\" type=\"submit\" value=\"Create thread\"/>\r\n        <input class=\"btn btn-inverse thread-create-reset\" type=\"reset\" value=\"Reset\"/>\r\n      </div>\r\n    </fieldset>\r\n  </form>\r\n  <div class=\"threads\"></div>\r\n</div>\r\n";});
 }});
 
 window.require.define({"views/thread_view": function(exports, require, module) {
