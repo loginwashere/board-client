@@ -12,14 +12,14 @@ module.exports = class ThreadsController extends Controller
 
   index: (params) ->
     console.log 'ThreadsController - index - params: ', params
-    @collection = new Threads {alias: params.alias}
+    @collection = new Threads {boardId: params.boardId}
     console.log 'collection: ', @collection
-    @view = new ThreadsView {collection: @collection, alias: params.alias}
+    @view = new ThreadsView {collection: @collection, boardId: params.boardId}
     @collection.fetch()
 
   show: (params) ->
     console.log 'ThreadsController - show - params: ', params
-    @collection = new Threads {alias: params.alias, threadId: params.threadId}
+    @collection = new Threads {boardId: params.boardId, threadId: params.threadId}
     console.log 'collection: ', @collection
-    @view = new ThreadsView {collection: @collection, alias: params.alias}
+    @view = new ThreadsView {collection: @collection, boardId: params.boardId}
     @collection.fetch()

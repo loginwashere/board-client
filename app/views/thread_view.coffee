@@ -7,9 +7,9 @@ module.exports = class ThreadView extends View
   initialize: (atributes) ->
     console.debug 'ThreadView - initialize - arguments ', arguments
     console.debug 'ThreadView - initialize - atributes ', atributes
+    @boardId = atributes.boardId
 
 
   getTemplateData: ->
     console.log 'ThreadView - @model - ', @model
-    thread: 
-      @model.toJSON()
+    thread: @model, boardId: @boardId

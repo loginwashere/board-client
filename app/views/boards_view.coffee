@@ -25,14 +25,16 @@ module.exports = class BoardsView extends CollectionView
 
   create: (event) =>
     event.preventDefault()
-    console.debug 'BoardsView#save', event
-    @collection.create({
+    console.debug 'BoardsView#create', event
+    result = @collection.create({
         'alias': $('input#board-alias').val(),
         'title': $('input#board-title').val(),
         'description': $('input#board-description').val()
       },{
         'wait': true
       })
+    if result?
+      $('input.board-create-reset').trigger('click')
 
   delete: (event) =>
     event.preventDefault()

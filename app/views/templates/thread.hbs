@@ -1,5 +1,5 @@
-<div class="well thread-{{thread.alias}}">
-    <p>{{thread.alias}}</p>
-    <p>{{thread.title}}</p>
-    <p>{{thread.description}}</p>
+<div class="well thread-{{thread.attributes.id}}">
+  <p><a href="/boards/{{boardId}}/threads/{{thread.attributes.id}}">{{thread.attributes.id}}</a></p>
+  <p>{{thread.attributes.title}}</p>
+  <p>{{thread.attributes.description}}</p>
 </div>

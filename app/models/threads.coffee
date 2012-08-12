@@ -8,16 +8,16 @@ module.exports = class Threads extends Collection
   initialize: (attributes, options) ->
     super
     console.debug 'Threads#initialize - attributes', attributes 
-    if attributes?.alias?
-      console.debug 'attributes.alias', attributes.alias
+    if attributes?.boardId?
+      console.debug 'attributes.boardId', attributes.boardId
       console.debug 'attributes.threadId', attributes.threadId
-      @alias = attributes.alias
+      @boardId = attributes.boardId
       if attributes.threadId?
         @threadId = attributes.threadId
 
   url: ->
-    console.debug 'Threads - url - @alias ', @alias
-    url = config.api.root + '/boards/' + @alias + '/threads'
+    console.debug 'Threads - url - @boardId ', @boardId
+    url = config.api.root + '/boards/' + @boardId + '/threads'
     if @threadId?
       url = url + '/' + @threadId
     url

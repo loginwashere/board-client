@@ -8,16 +8,34 @@ module.exports = class Boards extends Collection
   initialize: (attributes, options) ->
     super
     console.debug 'Boards#initialize - attributes', attributes 
-    if attributes?.alias?
-      console.debug 'attributes.alias', attributes.alias
-      @alias = attributes.alias
+    if attributes?.boardId?
+      console.debug 'attributes.boardId', attributes.boardId
+      @boardId = attributes.boardId
 
-  url: ->
-    console.debug 'Boards - url - @alias ', @alias
+  url: (method) ->
     url = config.api.root + '/boards'
-    if @alias?
-      url = url + '/' + @alias
+    
+    switch method
+      when 'read', 'delete', 'update'
+        if @boardId?
+          url += '/' + @boardId
+      when 'create' then url
+      else
+        url
+
+    console.debug 'Boards - url - @boardId ', @boardId
+    console.debug 'Boards - url - @boardId? ', @boardId?
+    console.debug 'Boards - url - method ', method
+    console.debug 'Boards - url - url ', url
     url
+
+  sync: (method, model, options) ->
+    @url(method)
+
+    Backbone.sync method, model, options
+    console.debug 'Boards#sync - method ', method
+    console.debug 'Boards#sync - model ', model
+    console.debug 'Boards#sync - options ', options
 
   parse: (response) ->
     console.log 'Boards - parse - response', response

@@ -85,7 +85,7 @@ window.require.define({"config": function(exports, require, module) {
 
   config.api.root = production ? 'http://secret-hamlet-7793.herokuapp.com' : 'http://192.168.1.35:8080';
 
-  config.root = production ? '/board-client/' : '/board-client/';
+  config.root = production ? '/' : '/';
 
   config.api.versionRoot = config.api.root + '/v1';
 
@@ -178,7 +178,7 @@ window.require.define({"controllers/base/controller": function(exports, require,
 }});
 
 window.require.define({"controllers/boards_controller": function(exports, require, module) {
-  var Boards, BoardsController, BoardsView, Controller,
+  var Boards, BoardsController, BoardsView, Controller, Threads, ThreadsView,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
@@ -186,7 +186,11 @@ window.require.define({"controllers/boards_controller": function(exports, requir
 
   Boards = require('models/boards');
 
+  Threads = require('models/threads');
+
   BoardsView = require('views/boards_view');
+
+  ThreadsView = require('views/threads_view');
 
   module.exports = BoardsController = (function(_super) {
 
@@ -212,15 +216,24 @@ window.require.define({"controllers/boards_controller": function(exports, requir
     };
 
     BoardsController.prototype.show = function(params) {
+      this.currentId = params.boardId;
       console.log('BoardsController - show - params: ', params);
       this.collection = new Boards({
-        alias: params.alias
+        boardId: this.currentId
       });
       console.log('collection: ', this.collection);
       this.view = new BoardsView({
         collection: this.collection
       });
-      return this.collection.fetch();
+      this.collection.fetch();
+      this.threadsCollection = new Threads({
+        boardId: this.currentId
+      });
+      console.log('threadsCollection: ', this.threadsCollection);
+      this.threadsView = new ThreadsView({
+        collection: this.threadsCollection
+      });
+      return this.threadsCollection.fetch();
     };
 
     return BoardsController;
@@ -487,12 +500,12 @@ window.require.define({"controllers/threads_controller": function(exports, requi
     ThreadsController.prototype.index = function(params) {
       console.log('ThreadsController - index - params: ', params);
       this.collection = new Threads({
-        alias: params.alias
+        boardId: params.boardId
       });
       console.log('collection: ', this.collection);
       this.view = new ThreadsView({
         collection: this.collection,
-        alias: params.alias
+        boardId: params.boardId
       });
       return this.collection.fetch();
     };
@@ -500,13 +513,13 @@ window.require.define({"controllers/threads_controller": function(exports, requi
     ThreadsController.prototype.show = function(params) {
       console.log('ThreadsController - show - params: ', params);
       this.collection = new Threads({
-        alias: params.alias,
+        boardId: params.boardId,
         threadId: params.threadId
       });
       console.log('collection: ', this.collection);
       this.view = new ThreadsView({
         collection: this.collection,
-        alias: params.alias
+        boardId: params.boardId
       });
       return this.collection.fetch();
     };
@@ -901,20 +914,44 @@ window.require.define({"models/boards": function(exports, require, module) {
     Boards.prototype.initialize = function(attributes, options) {
       Boards.__super__.initialize.apply(this, arguments);
       console.debug('Boards#initialize - attributes', attributes);
-      if ((attributes != null ? attributes.alias : void 0) != null) {
-        console.debug('attributes.alias', attributes.alias);
-        return this.alias = attributes.alias;
+      if ((attributes != null ? attributes.boardId : void 0) != null) {
+        console.debug('attributes.boardId', attributes.boardId);
+        return this.boardId = attributes.boardId;
       }
     };
 
-    Boards.prototype.url = function() {
+    Boards.prototype.url = function(method) {
       var url;
-      console.debug('Boards - url - @alias ', this.alias);
       url = config.api.root + '/boards';
-      if (this.alias != null) {
-        url = url + '/' + this.alias;
+      switch (method) {
+        case 'read':
+        case 'delete':
+        case 'update':
+          if (this.boardId != null) {
+            url += '/' + this.boardId;
+          }
+          break;
+        case 'create':
+          url;
+
+          break;
+        default:
+          url;
+
       }
+      console.debug('Boards - url - @boardId ', this.boardId);
+      console.debug('Boards - url - @boardId? ', this.boardId != null);
+      console.debug('Boards - url - method ', method);
+      console.debug('Boards - url - url ', url);
       return url;
+    };
+
+    Boards.prototype.sync = function(method, model, options) {
+      this.url(method);
+      Backbone.sync(method, model, options);
+      console.debug('Boards#sync - method ', method);
+      console.debug('Boards#sync - model ', model);
+      return console.debug('Boards#sync - options ', options);
     };
 
     Boards.prototype.parse = function(response) {
@@ -1055,10 +1092,10 @@ window.require.define({"models/threads": function(exports, require, module) {
     Threads.prototype.initialize = function(attributes, options) {
       Threads.__super__.initialize.apply(this, arguments);
       console.debug('Threads#initialize - attributes', attributes);
-      if ((attributes != null ? attributes.alias : void 0) != null) {
-        console.debug('attributes.alias', attributes.alias);
+      if ((attributes != null ? attributes.boardId : void 0) != null) {
+        console.debug('attributes.boardId', attributes.boardId);
         console.debug('attributes.threadId', attributes.threadId);
-        this.alias = attributes.alias;
+        this.boardId = attributes.boardId;
         if (attributes.threadId != null) {
           return this.threadId = attributes.threadId;
         }
@@ -1067,8 +1104,8 @@ window.require.define({"models/threads": function(exports, require, module) {
 
     Threads.prototype.url = function() {
       var url;
-      console.debug('Threads - url - @alias ', this.alias);
-      url = config.api.root + '/boards/' + this.alias + '/threads';
+      console.debug('Threads - url - @boardId ', this.boardId);
+      url = config.api.root + '/boards/' + this.boardId + '/threads';
       if (this.threadId != null) {
         url = url + '/' + this.threadId;
       }
@@ -1112,11 +1149,11 @@ window.require.define({"routes": function(exports, require, module) {
   module.exports = function(match) {
     match('', 'boards#index');
     match('boards', 'boards#index');
-    match('boards/:alias', 'boards#show');
-    match('boards/:alias/threads', 'threads#index');
-    match('boards/:alias/threads/:threadId', 'threads#show');
-    match('boards/:alias/threads/:threadId/posts', 'posts#index');
-    return match('boards/:alias/threads/:threadId/posts/:postId', 'posts#show');
+    match('boards/:boardId', 'boards#show');
+    match('boards/:boardId/threads', 'threads#index');
+    match('boards/:boardId/threads/:threadId', 'threads#show');
+    match('boards/:boardId/threads/:threadId/posts', 'posts#index');
+    return match('boards/:boardId/threads/:threadId/posts/:postId', 'posts#show');
   };
   
 }});
@@ -1324,15 +1361,19 @@ window.require.define({"views/boards_view": function(exports, require, module) {
     };
 
     BoardsView.prototype.create = function(event) {
+      var result;
       event.preventDefault();
-      console.debug('BoardsView#save', event);
-      return this.collection.create({
+      console.debug('BoardsView#create', event);
+      result = this.collection.create({
         'alias': $('input#board-alias').val(),
         'title': $('input#board-title').val(),
         'description': $('input#board-description').val()
       }, {
         'wait': true
       });
+      if (result != null) {
+        return $('input.board-create-reset').trigger('click');
+      }
     };
 
     BoardsView.prototype["delete"] = function(event) {
@@ -1625,14 +1666,21 @@ window.require.define({"views/templates/board": function(exports, require, modul
     stack1 = (stack1 === null || stack1 === undefined || stack1 === false ? stack1 : stack1.cid);
     if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
     else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "board.cid", { hash: {} }); }
-    buffer += escapeExpression(stack1) + "\">\r\n  <button class=\"btn btn-danger pull-right board-delete\"><i class=\"icon-remove icon-white\"></i></button>\r\n  <button class=\"btn btn-primary pull-right board-edit\"><i class=\"icon-pencil icon-white\"></i></button>\r\n  <div class=\"board-view\">\r\n    <p>";
+    buffer += escapeExpression(stack1) + "\">\r\n  <button class=\"btn btn-danger pull-right board-delete\"><i class=\"icon-remove icon-white\"></i></button>\r\n  <button class=\"btn btn-primary pull-right board-edit\"><i class=\"icon-pencil icon-white\"></i></button>\r\n  <div class=\"board-view\">\r\n    <p><a href=\"/boards/";
+    foundHelper = helpers.board;
+    stack1 = foundHelper || depth0.board;
+    stack1 = (stack1 === null || stack1 === undefined || stack1 === false ? stack1 : stack1.attributes);
+    stack1 = (stack1 === null || stack1 === undefined || stack1 === false ? stack1 : stack1.id);
+    if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
+    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "board.attributes.id", { hash: {} }); }
+    buffer += escapeExpression(stack1) + "\">";
     foundHelper = helpers.board;
     stack1 = foundHelper || depth0.board;
     stack1 = (stack1 === null || stack1 === undefined || stack1 === false ? stack1 : stack1.attributes);
     stack1 = (stack1 === null || stack1 === undefined || stack1 === false ? stack1 : stack1.alias);
     if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
     else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "board.attributes.alias", { hash: {} }); }
-    buffer += escapeExpression(stack1) + "</p>\r\n    <p>";
+    buffer += escapeExpression(stack1) + "</a></p>\r\n    <p>";
     foundHelper = helpers.board;
     stack1 = foundHelper || depth0.board;
     stack1 = (stack1 === null || stack1 === undefined || stack1 === false ? stack1 : stack1.attributes);
@@ -1667,7 +1715,14 @@ window.require.define({"views/templates/board": function(exports, require, modul
     stack1 = (stack1 === null || stack1 === undefined || stack1 === false ? stack1 : stack1.description);
     if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
     else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "board.attributes.description", { hash: {} }); }
-    buffer += escapeExpression(stack1) + "\" \r\n            placeholder=\"Description\"/>\r\n        </div>\r\n      </div>\r\n      <div class=\"form-actions\">\r\n        <input class=\"btn btn-primary board-edit-submit\" type=\"submit\" value=\"Save board\"/>\r\n        <input class=\"btn btn-inverse\" type=\"reset\" value=\"Reset\"/>\r\n      </div>\r\n    </form>\r\n  </div>\r\n</div>";
+    buffer += escapeExpression(stack1) + "\" \r\n            placeholder=\"Description\"/>\r\n        </div>\r\n      </div>\r\n      <div class=\"form-actions\">\r\n        <input class=\"btn btn-primary board-edit-submit\" type=\"submit\" value=\"Save board\"/>\r\n        <input class=\"btn btn-inverse\" type=\"reset\" value=\"Reset\"/>\r\n      </div>\r\n    </form>\r\n  </div>\r\n</div>\r\n<div class=\"board-";
+    foundHelper = helpers.board;
+    stack1 = foundHelper || depth0.board;
+    stack1 = (stack1 === null || stack1 === undefined || stack1 === false ? stack1 : stack1.attributes);
+    stack1 = (stack1 === null || stack1 === undefined || stack1 === false ? stack1 : stack1.id);
+    if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
+    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "board.attributes.id", { hash: {} }); }
+    buffer += escapeExpression(stack1) + "-threads\"></div>";
     return buffer;});
 }});
 
@@ -1677,7 +1732,7 @@ window.require.define({"views/templates/boards": function(exports, require, modu
     var foundHelper, self=this;
 
 
-    return "<div class=\"boards-container\">\r\n  <form class=\"board-create form-horizontal\">\r\n    <fieldset>\r\n      <legend>Create board</legend>\r\n      <div class=\"control-group\">\r\n        <label class=\"control-label\" for=\"board-alias\">Alias</label>\r\n        <div class=\"controls\">\r\n          <input id=\"board-alias\"\r\n            name=\"alias\"\r\n            type=\"text\"\r\n            placeholder=\"Alias\"\r\n            class=\"input-xlarge\"/>\r\n        </div>\r\n      </div>\r\n      <div class=\"control-group\">\r\n        <label class=\"control-label\" for=\"board-title\">Title</label>\r\n        <div class=\"controls\">\r\n          <input id=\"board-title\"\r\n            name=\"title\"\r\n            type=\"text\"\r\n            placeholder=\"Title\"\r\n            class=\"input-xlarge\"/>\r\n        </div>\r\n      </div>\r\n      <div class=\"control-group\">\r\n        <label class=\"control-label\" for=\"board-description\">Description</label>\r\n        <div class=\"controls\">\r\n          <input id=\"board-description\"\r\n            name=\"description\"\r\n            type=\"text\"\r\n            placeholder=\"Description\"\r\n            class=\"input-xlarge\"/>\r\n        </div>\r\n      </div>\r\n      <div class=\"form-actions\">\r\n        <input class=\"btn btn-primary board-create-submit\" type=\"submit\" value=\"Create board\"/>\r\n      </div>\r\n    </fieldset>\r\n  </form>\r\n  <div class=\"boards\">\r\n  </div>\r\n</div>";});
+    return "<div class=\"boards-container\">\r\n  <form class=\"board-create form-horizontal\">\r\n    <fieldset>\r\n      <legend>Create board</legend>\r\n      <div class=\"control-group\">\r\n        <label class=\"control-label\" for=\"board-alias\">Alias</label>\r\n        <div class=\"controls\">\r\n          <input id=\"board-alias\"\r\n            name=\"alias\"\r\n            type=\"text\"\r\n            placeholder=\"Alias\"\r\n            class=\"input-xlarge\"/>\r\n        </div>\r\n      </div>\r\n      <div class=\"control-group\">\r\n        <label class=\"control-label\" for=\"board-title\">Title</label>\r\n        <div class=\"controls\">\r\n          <input id=\"board-title\"\r\n            name=\"title\"\r\n            type=\"text\"\r\n            placeholder=\"Title\"\r\n            class=\"input-xlarge\"/>\r\n        </div>\r\n      </div>\r\n      <div class=\"control-group\">\r\n        <label class=\"control-label\" for=\"board-description\">Description</label>\r\n        <div class=\"controls\">\r\n          <input id=\"board-description\"\r\n            name=\"description\"\r\n            type=\"text\"\r\n            placeholder=\"Description\"\r\n            class=\"input-xlarge\"/>\r\n        </div>\r\n      </div>\r\n      <div class=\"form-actions\">\r\n        <input class=\"btn btn-primary board-create-submit\" type=\"submit\" value=\"Create board\"/>\r\n        <input class=\"btn btn-inverse board-create-reset\" type=\"reset\" value=\"Reset\"/>\r\n      </div>\r\n    </fieldset>\r\n  </form>\r\n  <div class=\"boards\"></div>\r\n</div>";});
 }});
 
 window.require.define({"views/templates/header": function(exports, require, module) {
@@ -1758,27 +1813,43 @@ window.require.define({"views/templates/thread": function(exports, require, modu
     buffer += "<div class=\"well thread-";
     foundHelper = helpers.thread;
     stack1 = foundHelper || depth0.thread;
-    stack1 = (stack1 === null || stack1 === undefined || stack1 === false ? stack1 : stack1.alias);
+    stack1 = (stack1 === null || stack1 === undefined || stack1 === false ? stack1 : stack1.attributes);
+    stack1 = (stack1 === null || stack1 === undefined || stack1 === false ? stack1 : stack1.id);
     if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
-    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "thread.alias", { hash: {} }); }
-    buffer += escapeExpression(stack1) + "\">\r\n    <p>";
+    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "thread.attributes.id", { hash: {} }); }
+    buffer += escapeExpression(stack1) + "\">\r\n  <p><a href=\"/boards/";
+    foundHelper = helpers.boardId;
+    stack1 = foundHelper || depth0.boardId;
+    if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
+    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "boardId", { hash: {} }); }
+    buffer += escapeExpression(stack1) + "/threads/";
     foundHelper = helpers.thread;
     stack1 = foundHelper || depth0.thread;
-    stack1 = (stack1 === null || stack1 === undefined || stack1 === false ? stack1 : stack1.alias);
+    stack1 = (stack1 === null || stack1 === undefined || stack1 === false ? stack1 : stack1.attributes);
+    stack1 = (stack1 === null || stack1 === undefined || stack1 === false ? stack1 : stack1.id);
     if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
-    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "thread.alias", { hash: {} }); }
-    buffer += escapeExpression(stack1) + "</p>\r\n    <p>";
+    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "thread.attributes.id", { hash: {} }); }
+    buffer += escapeExpression(stack1) + "\">";
     foundHelper = helpers.thread;
     stack1 = foundHelper || depth0.thread;
+    stack1 = (stack1 === null || stack1 === undefined || stack1 === false ? stack1 : stack1.attributes);
+    stack1 = (stack1 === null || stack1 === undefined || stack1 === false ? stack1 : stack1.id);
+    if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
+    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "thread.attributes.id", { hash: {} }); }
+    buffer += escapeExpression(stack1) + "</a></p>\r\n  <p>";
+    foundHelper = helpers.thread;
+    stack1 = foundHelper || depth0.thread;
+    stack1 = (stack1 === null || stack1 === undefined || stack1 === false ? stack1 : stack1.attributes);
     stack1 = (stack1 === null || stack1 === undefined || stack1 === false ? stack1 : stack1.title);
     if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
-    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "thread.title", { hash: {} }); }
-    buffer += escapeExpression(stack1) + "</p>\r\n    <p>";
+    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "thread.attributes.title", { hash: {} }); }
+    buffer += escapeExpression(stack1) + "</p>\r\n  <p>";
     foundHelper = helpers.thread;
     stack1 = foundHelper || depth0.thread;
+    stack1 = (stack1 === null || stack1 === undefined || stack1 === false ? stack1 : stack1.attributes);
     stack1 = (stack1 === null || stack1 === undefined || stack1 === false ? stack1 : stack1.description);
     if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
-    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "thread.description", { hash: {} }); }
+    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "thread.attributes.description", { hash: {} }); }
     buffer += escapeExpression(stack1) + "</p>\r\n</div>";
     return buffer;});
 }});
@@ -1786,34 +1857,10 @@ window.require.define({"views/templates/thread": function(exports, require, modu
 window.require.define({"views/templates/threads": function(exports, require, module) {
   module.exports = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
     helpers = helpers || Handlebars.helpers;
-    var stack1, stack2, foundHelper, tmp1, self=this, functionType="function", helperMissing=helpers.helperMissing, undef=void 0, escapeExpression=this.escapeExpression;
+    var foundHelper, self=this;
 
-  function program1(depth0,data) {
-    
-    var buffer = "", stack1;
-    buffer += "\r\n  <a class=\"header-link\" href=\"";
-    foundHelper = helpers.alias;
-    stack1 = foundHelper || depth0.alias;
-    if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
-    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "alias", { hash: {} }); }
-    buffer += escapeExpression(stack1) + "\">";
-    foundHelper = helpers.title;
-    stack1 = foundHelper || depth0.title;
-    if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
-    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "title", { hash: {} }); }
-    buffer += escapeExpression(stack1) + "</a>\r\n";
-    return buffer;}
 
-    foundHelper = helpers.items;
-    stack1 = foundHelper || depth0.items;
-    stack2 = helpers.each;
-    tmp1 = self.program(1, program1, data);
-    tmp1.hash = {};
-    tmp1.fn = tmp1;
-    tmp1.inverse = self.noop;
-    stack1 = stack2.call(depth0, stack1, tmp1);
-    if(stack1 || stack1 === 0) { return stack1; }
-    else { return ''; }});
+    return "<div class=\"threads-container\">\r\n  <form class=\"board-create form-horizontal\">\r\n    <fieldset>\r\n      <legend>Create board</legend>\r\n      <div class=\"control-group\">\r\n        <label class=\"control-label\" for=\"board-alias\">Alias</label>\r\n        <div class=\"controls\">\r\n          <input id=\"board-alias\"\r\n            name=\"alias\"\r\n            type=\"text\"\r\n            placeholder=\"Alias\"\r\n            class=\"input-xlarge\"/>\r\n        </div>\r\n      </div>\r\n      <div class=\"control-group\">\r\n        <label class=\"control-label\" for=\"board-title\">Title</label>\r\n        <div class=\"controls\">\r\n          <input id=\"board-title\"\r\n            name=\"title\"\r\n            type=\"text\"\r\n            placeholder=\"Title\"\r\n            class=\"input-xlarge\"/>\r\n        </div>\r\n      </div>\r\n      <div class=\"control-group\">\r\n        <label class=\"control-label\" for=\"board-description\">Description</label>\r\n        <div class=\"controls\">\r\n          <input id=\"board-description\"\r\n            name=\"description\"\r\n            type=\"text\"\r\n            placeholder=\"Description\"\r\n            class=\"input-xlarge\"/>\r\n        </div>\r\n      </div>\r\n      <div class=\"form-actions\">\r\n        <input class=\"btn btn-primary board-create-submit\" type=\"submit\" value=\"Create board\"/>\r\n      </div>\r\n    </fieldset>\r\n  </form>\r\n  <div class=\"threads\"></div>\r\n</div>\r\n";});
 }});
 
 window.require.define({"views/thread_view": function(exports, require, module) {
@@ -1837,13 +1884,15 @@ window.require.define({"views/thread_view": function(exports, require, module) {
 
     ThreadView.prototype.initialize = function(atributes) {
       console.debug('ThreadView - initialize - arguments ', arguments);
-      return console.debug('ThreadView - initialize - atributes ', atributes);
+      console.debug('ThreadView - initialize - atributes ', atributes);
+      return this.boardId = atributes.boardId;
     };
 
     ThreadView.prototype.getTemplateData = function() {
       console.log('ThreadView - @model - ', this.model);
       return {
-        thread: this.model.toJSON()
+        thread: this.model,
+        boardId: this.boardId
       };
     };
 
@@ -1876,13 +1925,24 @@ window.require.define({"views/threads_view": function(exports, require, module) 
 
     ThreadsView.prototype.itemView = ThreadView;
 
+    ThreadsView.prototype.listSelector = 'div.threads';
+
     ThreadsView.prototype.container = '#page-container';
 
     ThreadsView.prototype.autoRender = true;
 
+    ThreadsView.prototype.initialize = function(options) {
+      ThreadsView.__super__.initialize.apply(this, arguments);
+      console.debug('ThreadsView#initialize - options', options);
+      this.boardId = options.collection.boardId;
+      this.container = '.board-' + options.collection.boardId + '-threads';
+      return console.debug('ThreadsView#initialize - @container', this.container);
+    };
+
     ThreadsView.prototype.getView = function(item) {
       return new ThreadView({
-        model: item
+        model: item,
+        boardId: this.boardId
       });
     };
 

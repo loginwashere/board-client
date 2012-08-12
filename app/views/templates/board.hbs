@@ -2,7 +2,7 @@
   <button class="btn btn-danger pull-right board-delete"><i class="icon-remove icon-white"></i></button>
   <button class="btn btn-primary pull-right board-edit"><i class="icon-pencil icon-white"></i></button>
   <div class="board-view">
-    <p>{{board.attributes.alias}}</p>
+    <p><a href="/boards/{{board.attributes.id}}">{{board.attributes.alias}}</a></p>
     <p>{{board.attributes.title}}</p>
     <p>{{board.attributes.description}}</p>
   </div>
@@ -45,3 +45,4 @@
     </form>
   </div>
 </div>
+<div class="board-{{board.attributes.id}}-threads"></div>

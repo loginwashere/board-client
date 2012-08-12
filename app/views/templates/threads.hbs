@@ -1,3 +1,41 @@
-{{#each items}}
-  <a class="header-link" href="{{alias}}">{{title}}</a>
-{{/each}}
+<div class="threads-container">
+  <form class="board-create form-horizontal">
+    <fieldset>
+      <legend>Create board</legend>
+      <div class="control-group">
+        <label class="control-label" for="board-alias">Alias</label>
+        <div class="controls">
+          <input id="board-alias"
+            name="alias"
+            type="text"
+            placeholder="Alias"
+            class="input-xlarge"/>
+        </div>
+      </div>
+      <div class="control-group">
+        <label class="control-label" for="board-title">Title</label>
+        <div class="controls">
+          <input id="board-title"
+            name="title"
+            type="text"
+            placeholder="Title"
+            class="input-xlarge"/>
+        </div>
+      </div>
+      <div class="control-group">
+        <label class="control-label" for="board-description">Description</label>
+        <div class="controls">
+          <input id="board-description"
+            name="description"
+            type="text"
+            placeholder="Description"
+            class="input-xlarge"/>
+        </div>
+      </div>
+      <div class="form-actions">
+        <input class="btn btn-primary board-create-submit" type="submit" value="Create board"/>
+      </div>
+    </fieldset>
+  </form>
+  <div class="threads"></div>
+</div>
