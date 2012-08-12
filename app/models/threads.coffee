@@ -9,20 +9,21 @@ module.exports = class Threads extends Collection
     super
     console.debug 'Threads#initialize - attributes', attributes 
     if attributes?.boardId?
-      console.debug 'attributes.boardId', attributes.boardId
-      console.debug 'attributes.threadId', attributes.threadId
+      console.debug 'Threads#attributes.boardId', attributes.boardId
+      console.debug 'Threads#attributes.threadId', attributes.threadId
       @boardId = attributes.boardId
       if attributes.threadId?
         @threadId = attributes.threadId
 
   url: ->
-    console.debug 'Threads - url - @boardId ', @boardId
+    console.debug 'Threads#url - @boardId ', @boardId
+    console.debug 'Threads#url - @threadId ', @threadId
     url = config.api.root + '/boards/' + @boardId + '/threads'
     if @threadId?
       url = url + '/' + @threadId
     url
 
   parse: (response) ->
-    console.log 'Threads - parse - response', response
+    console.log 'Threads#parse - response', response
     response.response.threads
 

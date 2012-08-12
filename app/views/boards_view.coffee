@@ -62,7 +62,7 @@ module.exports = class BoardsView extends CollectionView
       .end()
         .find('div.edit-view').toggleClass('hidden')
 
-  edit: (edit) =>
+  edit: (event) =>
     event.preventDefault()
     console.debug 'BoardsView#edit', event
     boardContainer = $(event.target).parents('div.board')
@@ -77,7 +77,7 @@ module.exports = class BoardsView extends CollectionView
     console.debug 'BoardsView#edit - board before', board
     board.save()
       .done (response) =>
-        @collection.fetch({url: @collection.url() + '/' + board.get('id')})
+        @collection.fetch {url: @collection.url()}
 
     console.debug 'BoardsView#edit - board after', board
 

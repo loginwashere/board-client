@@ -309,11 +309,19 @@ window.require.define({"controllers/home_controller": function(exports, require,
 }});
 
 window.require.define({"controllers/posts_controller": function(exports, require, module) {
-  var Controller, PostsController,
+  var Controller, Posts, PostsController, PostsView, Threads, ThreadsView,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
   Controller = require('controllers/base/controller');
+
+  Threads = require('models/threads');
+
+  Posts = require('models/posts');
+
+  ThreadsView = require('views/threads_view');
+
+  PostsView = require('views/posts_view');
 
   module.exports = PostsController = (function(_super) {
 
@@ -322,6 +330,42 @@ window.require.define({"controllers/posts_controller": function(exports, require
     function PostsController() {
       return PostsController.__super__.constructor.apply(this, arguments);
     }
+
+    PostsController.prototype.initialize = function() {
+      console.log('PostsController - initialize');
+      return PostsController.__super__.initialize.apply(this, arguments);
+    };
+
+    PostsController.prototype.index = function(params) {
+      console.log('PostsController - index - params: ', params);
+      this.collection = new Posts({
+        boardId: params.boardId,
+        threadId: params.threadId
+      });
+      console.log('collection: ', this.collection);
+      this.view = new PostsView({
+        collection: this.collection,
+        boardId: params.boardId,
+        threadId: params.threadId
+      });
+      return this.collection.fetch();
+    };
+
+    PostsController.prototype.show = function(params) {
+      console.log('PostsController - show - params: ', params);
+      this.collection = new Posts({
+        boardId: params.boardId,
+        threadId: params.threadId,
+        postId: params.postId
+      });
+      console.log('collection: ', this.collection);
+      this.view = new PostsView({
+        collection: this.collection,
+        boardId: params.boardId,
+        postId: params.postId
+      });
+      return this.collection.fetch();
+    };
 
     return PostsController;
 
@@ -476,7 +520,7 @@ window.require.define({"controllers/session_controller": function(exports, requi
 }});
 
 window.require.define({"controllers/threads_controller": function(exports, require, module) {
-  var Controller, Threads, ThreadsController, ThreadsView,
+  var Controller, Posts, PostsView, Threads, ThreadsController, ThreadsView,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
@@ -484,7 +528,11 @@ window.require.define({"controllers/threads_controller": function(exports, requi
 
   Threads = require('models/threads');
 
+  Posts = require('models/posts');
+
   ThreadsView = require('views/threads_view');
+
+  PostsView = require('views/posts_view');
 
   module.exports = ThreadsController = (function(_super) {
 
@@ -495,16 +543,16 @@ window.require.define({"controllers/threads_controller": function(exports, requi
     }
 
     ThreadsController.prototype.initialize = function() {
-      console.log('ThreadsController - initialize');
+      console.log('ThreadsController#initialize');
       return ThreadsController.__super__.initialize.apply(this, arguments);
     };
 
     ThreadsController.prototype.index = function(params) {
-      console.log('ThreadsController - index - params: ', params);
+      console.log('ThreadsController#index - params: ', params);
       this.collection = new Threads({
         boardId: params.boardId
       });
-      console.log('collection: ', this.collection);
+      console.log('ThreadsController#collection: ', this.collection);
       this.view = new ThreadsView({
         collection: this.collection,
         boardId: params.boardId
@@ -513,17 +561,30 @@ window.require.define({"controllers/threads_controller": function(exports, requi
     };
 
     ThreadsController.prototype.show = function(params) {
-      console.log('ThreadsController - show - params: ', params);
+      this.currentId = params.threadId;
+      console.log('ThreadsController#show - params: ', params);
       this.collection = new Threads({
         boardId: params.boardId,
-        threadId: params.threadId
+        threadId: this.currentId
       });
-      console.log('collection: ', this.collection);
+      console.log('ThreadsController#collection: ', this.collection);
       this.view = new ThreadsView({
         collection: this.collection,
-        boardId: params.boardId
+        boardId: params.boardId,
+        threadId: this.currentId
       });
-      return this.collection.fetch();
+      this.collection.fetch({
+        url: this.collection.url()
+      });
+      this.postsCollection = new Posts({
+        boardId: params.boardId,
+        threadId: this.currentId
+      });
+      console.log('ThreadsController#postsCollection: ', this.postsCollection);
+      this.postsView = new PostsView({
+        collection: this.postsCollection
+      });
+      return this.postsCollection.fetch();
     };
 
     return ThreadsController;
@@ -994,6 +1055,16 @@ window.require.define({"models/post": function(exports, require, module) {
       return Post.__super__.constructor.apply(this, arguments);
     }
 
+    Post.prototype.parse = function(response) {
+      var _ref;
+      console.log('Post#parse - response', response);
+      if ((response != null ? (_ref = response.response) != null ? _ref.posts : void 0 : void 0) != null) {
+        return response.response.posts[0];
+      } else {
+        return response;
+      }
+    };
+
     return Post;
 
   })(Model);
@@ -1001,13 +1072,15 @@ window.require.define({"models/post": function(exports, require, module) {
 }});
 
 window.require.define({"models/posts": function(exports, require, module) {
-  var Collection, Post, Posts,
+  var Collection, Post, Posts, config,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
   Collection = require('models/base/collection');
 
   Post = require('models/post');
+
+  config = require('config');
 
   module.exports = Posts = (function(_super) {
 
@@ -1018,6 +1091,40 @@ window.require.define({"models/posts": function(exports, require, module) {
     }
 
     Posts.prototype.model = Post;
+
+    Posts.prototype.initialize = function(attributes, options) {
+      Posts.__super__.initialize.apply(this, arguments);
+      console.debug('Posts#initialize - attributes', attributes);
+      if ((attributes != null ? attributes.boardId : void 0) != null) {
+        console.debug('Posts#initialize - attributes.boardId', attributes.boardId);
+        console.debug('Posts#initialize - attributes.threadId', attributes.threadId);
+        console.debug('Posts#initialize - attributes.postId', attributes.postId);
+        this.boardId = attributes.boardId;
+        if (attributes.threadId != null) {
+          this.threadId = attributes.threadId;
+          if (attributes.postId != null) {
+            return this.postId = attributes.postId;
+          }
+        }
+      }
+    };
+
+    Posts.prototype.url = function() {
+      var url;
+      console.debug('Posts#url - @boardId ', this.boardId);
+      console.debug('Posts#url - @threadId ', this.threadId);
+      console.debug('Posts#url - @postId ', this.postId);
+      url = config.api.root + '/boards/' + this.boardId + '/threads/' + this.threadId + '/posts';
+      if (this.postId != null) {
+        url = url + '/' + this.postId;
+      }
+      return url;
+    };
+
+    Posts.prototype.parse = function(response) {
+      console.log('Posts#parse - response', response);
+      return response.response.posts;
+    };
 
     return Posts;
 
@@ -1081,8 +1188,8 @@ window.require.define({"models/threads": function(exports, require, module) {
       Threads.__super__.initialize.apply(this, arguments);
       console.debug('Threads#initialize - attributes', attributes);
       if ((attributes != null ? attributes.boardId : void 0) != null) {
-        console.debug('attributes.boardId', attributes.boardId);
-        console.debug('attributes.threadId', attributes.threadId);
+        console.debug('Threads#attributes.boardId', attributes.boardId);
+        console.debug('Threads#attributes.threadId', attributes.threadId);
         this.boardId = attributes.boardId;
         if (attributes.threadId != null) {
           return this.threadId = attributes.threadId;
@@ -1092,7 +1199,8 @@ window.require.define({"models/threads": function(exports, require, module) {
 
     Threads.prototype.url = function() {
       var url;
-      console.debug('Threads - url - @boardId ', this.boardId);
+      console.debug('Threads#url - @boardId ', this.boardId);
+      console.debug('Threads#url - @threadId ', this.threadId);
       url = config.api.root + '/boards/' + this.boardId + '/threads';
       if (this.threadId != null) {
         url = url + '/' + this.threadId;
@@ -1101,7 +1209,7 @@ window.require.define({"models/threads": function(exports, require, module) {
     };
 
     Threads.prototype.parse = function(response) {
-      console.log('Threads - parse - response', response);
+      console.log('Threads#parse - response', response);
       return response.response.threads;
     };
 
@@ -1391,7 +1499,7 @@ window.require.define({"views/boards_view": function(exports, require, module) {
       return $(event.target).closest('div.container').find('div.view').toggleClass('hidden').end().find('div.edit-view').toggleClass('hidden');
     };
 
-    BoardsView.prototype.edit = function(edit) {
+    BoardsView.prototype.edit = function(event) {
       var board, boardContainer, cid,
         _this = this;
       event.preventDefault();
@@ -1408,7 +1516,7 @@ window.require.define({"views/boards_view": function(exports, require, module) {
       console.debug('BoardsView#edit - board before', board);
       board.save().done(function(response) {
         return _this.collection.fetch({
-          url: _this.collection.url() + '/' + board.get('id')
+          url: _this.collection.url()
         });
       });
       return console.debug('BoardsView#edit - board after', board);
@@ -1612,6 +1720,22 @@ window.require.define({"views/post_view": function(exports, require, module) {
 
     PostView.prototype.template = template;
 
+    PostView.prototype.initialize = function(atributes) {
+      console.debug('PostView#initialize - arguments ', arguments);
+      console.debug('PostView#initialize - atributes ', atributes);
+      this.boardId = atributes.boardId;
+      return this.threadId = atributes.threadId;
+    };
+
+    PostView.prototype.getTemplateData = function() {
+      console.log('PostView#getTemplateData - @model - ', this.model);
+      return {
+        post: this.model,
+        boardId: this.boardId,
+        threadId: this.threadId
+      };
+    };
+
     return PostView;
 
   })(View);
@@ -1619,27 +1743,131 @@ window.require.define({"views/post_view": function(exports, require, module) {
 }});
 
 window.require.define({"views/posts_view": function(exports, require, module) {
-  var PostsView, View, template,
+  var CollectionView, PostView, PostsView, template,
+    __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  View = require('views/base/view');
+  CollectionView = require('views/base/collection_view');
 
   template = require('views/templates/posts');
+
+  PostView = require('views/post_view');
 
   module.exports = PostsView = (function(_super) {
 
     __extends(PostsView, _super);
 
     function PostsView() {
+      this.toggleEdit = __bind(this.toggleEdit, this);
+
+      this["delete"] = __bind(this["delete"], this);
+
+      this.edit = __bind(this.edit, this);
+
+      this.create = __bind(this.create, this);
       return PostsView.__super__.constructor.apply(this, arguments);
     }
 
     PostsView.prototype.template = template;
 
+    PostsView.prototype.itemView = PostView;
+
+    PostsView.prototype.listSelector = 'div.posts';
+
+    PostsView.prototype.container = '#page-container';
+
+    PostsView.prototype.autoRender = true;
+
+    PostsView.prototype.initialize = function(options) {
+      PostsView.__super__.initialize.apply(this, arguments);
+      console.debug('PostsView#initialize - options', options);
+      this.boardId = options.collection.boardId;
+      this.threadId = options.collection.threadId;
+      console.debug('PostsView#initialize - @container', this.container);
+      this.delegate('click', 'button.item-edit', this.toggleEdit);
+      this.delegate('submit', 'form.post-create', this.create);
+      this.delegate('submit', 'form.post-edit', this.edit);
+      this.delegate('click', 'button.post-delete', this["delete"]);
+      return console.debug('PostsView#@collection ', this.collection);
+    };
+
+    PostsView.prototype.create = function(event) {
+      var result;
+      event.preventDefault();
+      console.debug('PostsView#create', event);
+      result = this.collection.create({
+        'title': $('input#post-title').val(),
+        'description': $('input#post-description').val()
+      }, {
+        'wait': true
+      });
+      if (result != null) {
+        return $('input.post-create-reset').trigger('click');
+      }
+    };
+
+    PostsView.prototype.edit = function(event) {
+      var cid, post, postContainer,
+        _this = this;
+      event.preventDefault();
+      console.debug('PostsView#edit', event);
+      postContainer = $(event.target).parents('div.post');
+      cid = postContainer.data('cid');
+      console.debug('PostsView#edit - cid ', cid);
+      post = this.collection.getByCid(cid);
+      console.debug('PostsView#edit - post before', post);
+      post.set({
+        title: postContainer.find('input.title').val(),
+        description: postContainer.find('input.description').val()
+      });
+      console.debug('PostsView#edit - post before', post);
+      post.save().done(function(response) {
+        return _this.collection.fetch({
+          url: _this.collection.url()
+        });
+      });
+      return console.debug('PostsView#edit - post after', post);
+    };
+
+    PostsView.prototype["delete"] = function(event) {
+      var cid, post, result;
+      event.preventDefault();
+      console.debug('PostsView#delete', event);
+      cid = $(event.target).parents('div.post').data('cid');
+      console.debug('PostsView#delete - cid ', cid);
+      post = this.collection.getByCid(cid);
+      console.debug('PostsView#delete - post before', post);
+      result = post.destroy({
+        success: function(model, response) {
+          console.debug('PostsView#delete - post desctroy success model', model);
+          return console.debug('PostsView#delete - post desctroy success response', response);
+        },
+        error: function(model, response) {
+          console.debug('PostsView#delete - post desctroy error model', model);
+          return console.debug('PostsView#delete - post desctroy error response', response);
+        }
+      });
+      console.debug('PostsView#delete - result', result);
+      return console.debug('PostsView#delete - post after', post);
+    };
+
+    PostsView.prototype.toggleEdit = function(event) {
+      console.debug('PostsView#toggleEdit', event);
+      return $(event.target).closest('div.container').find('div.view').toggleClass('hidden').end().find('div.edit-view').toggleClass('hidden');
+    };
+
+    PostsView.prototype.getView = function(item) {
+      return new PostView({
+        model: item,
+        boardId: this.boardId,
+        threadId: this.threadId
+      });
+    };
+
     return PostsView;
 
-  })(View);
+  })(CollectionView);
   
 }});
 
@@ -1778,19 +2006,78 @@ window.require.define({"views/templates/login": function(exports, require, modul
 window.require.define({"views/templates/post": function(exports, require, module) {
   module.exports = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
     helpers = helpers || Handlebars.helpers;
-    var buffer = "", foundHelper, self=this;
+    var buffer = "", stack1, foundHelper, self=this, functionType="function", helperMissing=helpers.helperMissing, undef=void 0, escapeExpression=this.escapeExpression;
 
 
+    buffer += "<div class=\"well post container\" data-cid=\"";
+    foundHelper = helpers.post;
+    stack1 = foundHelper || depth0.post;
+    stack1 = (stack1 === null || stack1 === undefined || stack1 === false ? stack1 : stack1.cid);
+    if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
+    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "post.cid", { hash: {} }); }
+    buffer += escapeExpression(stack1) + "\">\r\n  <button class=\"btn btn-danger pull-right post-delete\"><i class=\"icon-remove icon-white\"></i></button>\r\n  <button class=\"btn btn-primary pull-right item-edit\"><i class=\"icon-pencil icon-white\"></i></button>\r\n  <div class=\"view\">\r\n    <p><a href=\"/boards/";
+    foundHelper = helpers.boardId;
+    stack1 = foundHelper || depth0.boardId;
+    if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
+    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "boardId", { hash: {} }); }
+    buffer += escapeExpression(stack1) + "/threads/";
+    foundHelper = helpers.threadId;
+    stack1 = foundHelper || depth0.threadId;
+    if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
+    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "threadId", { hash: {} }); }
+    buffer += escapeExpression(stack1) + "/posts/";
+    foundHelper = helpers.post;
+    stack1 = foundHelper || depth0.post;
+    stack1 = (stack1 === null || stack1 === undefined || stack1 === false ? stack1 : stack1.attributes);
+    stack1 = (stack1 === null || stack1 === undefined || stack1 === false ? stack1 : stack1.id);
+    if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
+    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "post.attributes.id", { hash: {} }); }
+    buffer += escapeExpression(stack1) + "\"/>";
+    foundHelper = helpers.post;
+    stack1 = foundHelper || depth0.post;
+    stack1 = (stack1 === null || stack1 === undefined || stack1 === false ? stack1 : stack1.attributes);
+    stack1 = (stack1 === null || stack1 === undefined || stack1 === false ? stack1 : stack1.id);
+    if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
+    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "post.attributes.id", { hash: {} }); }
+    buffer += escapeExpression(stack1) + "</a></p>\r\n    <p>";
+    foundHelper = helpers.post;
+    stack1 = foundHelper || depth0.post;
+    stack1 = (stack1 === null || stack1 === undefined || stack1 === false ? stack1 : stack1.attributes);
+    stack1 = (stack1 === null || stack1 === undefined || stack1 === false ? stack1 : stack1.title);
+    if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
+    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "post.attributes.title", { hash: {} }); }
+    buffer += escapeExpression(stack1) + "</p>\r\n    <p>";
+    foundHelper = helpers.post;
+    stack1 = foundHelper || depth0.post;
+    stack1 = (stack1 === null || stack1 === undefined || stack1 === false ? stack1 : stack1.attributes);
+    stack1 = (stack1 === null || stack1 === undefined || stack1 === false ? stack1 : stack1.description);
+    if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
+    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "post.attributes.description", { hash: {} }); }
+    buffer += escapeExpression(stack1) + "</p>\r\n  </div>\r\n  <div class=\"edit-view hidden\">\r\n    <form class=\"post-edit form-horizontal\">\r\n      <div class=\"control-group\">\r\n        <label class=\"control-label\" for=\"post-title\">Title</label>\r\n        <div class=\"controls\">\r\n          <input type=\"text\" \r\n            name=\"title\" \r\n            class=\"input-xlarge title\"\r\n            value=\"";
+    foundHelper = helpers.post;
+    stack1 = foundHelper || depth0.post;
+    stack1 = (stack1 === null || stack1 === undefined || stack1 === false ? stack1 : stack1.attributes);
+    stack1 = (stack1 === null || stack1 === undefined || stack1 === false ? stack1 : stack1.title);
+    if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
+    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "post.attributes.title", { hash: {} }); }
+    buffer += escapeExpression(stack1) + "\" \r\n            placeholder=\"Title\"/>\r\n        </div>\r\n      </div>\r\n      <div class=\"control-group\">\r\n        <label class=\"control-label\" for=\"post-description\">Description</label>\r\n        <div class=\"controls\">\r\n          <input type=\"text\" \r\n            name=\"description\" \r\n            class=\"input-xlarge description\"\r\n            value=\"";
+    foundHelper = helpers.post;
+    stack1 = foundHelper || depth0.post;
+    stack1 = (stack1 === null || stack1 === undefined || stack1 === false ? stack1 : stack1.attributes);
+    stack1 = (stack1 === null || stack1 === undefined || stack1 === false ? stack1 : stack1.description);
+    if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
+    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "post.attributes.description", { hash: {} }); }
+    buffer += escapeExpression(stack1) + "\" \r\n            placeholder=\"Description\"/>\r\n        </div>\r\n      </div>\r\n      <div class=\"form-actions\">\r\n        <input class=\"btn btn-primary post-edit-submit\" type=\"submit\" value=\"Save post\"/>\r\n        <input class=\"btn btn-inverse post-edit-reset\" type=\"reset\" value=\"Reset\"/>\r\n      </div>\r\n    </form>\r\n  </div>\r\n</div>";
     return buffer;});
 }});
 
 window.require.define({"views/templates/posts": function(exports, require, module) {
   module.exports = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
     helpers = helpers || Handlebars.helpers;
-    var buffer = "", foundHelper, self=this;
+    var foundHelper, self=this;
 
 
-    return buffer;});
+    return "<div class=\"posts-container\">\r\n  <form class=\"post-create form-horizontal\">\r\n    <fieldset>\r\n      <legend>Create post</legend>\r\n      <div class=\"control-group\">\r\n        <label class=\"control-label\" for=\"post-title\">Title</label>\r\n        <div class=\"controls\">\r\n          <input id=\"post-title\"\r\n            name=\"title\"\r\n            type=\"text\"\r\n            placeholder=\"Title\"\r\n            class=\"input-xlarge\"/>\r\n        </div>\r\n      </div>\r\n      <div class=\"control-group\">\r\n        <label class=\"control-label\" for=\"post-description\">Description</label>\r\n        <div class=\"controls\">\r\n          <input id=\"post-description\"\r\n            name=\"description\"\r\n            type=\"text\"\r\n            placeholder=\"Description\"\r\n            class=\"input-xlarge\"/>\r\n        </div>\r\n      </div>\r\n      <div class=\"form-actions\">\r\n        <input class=\"btn btn-primary post-create-submit\" type=\"submit\" value=\"Create post\"/>\r\n      </div>\r\n    </fieldset>\r\n  </form>\r\n  <div class=\"posts\"></div>\r\n</div>\r\n";});
 }});
 
 window.require.define({"views/templates/thread": function(exports, require, module) {
@@ -1897,13 +2184,13 @@ window.require.define({"views/thread_view": function(exports, require, module) {
     ThreadView.prototype.template = template;
 
     ThreadView.prototype.initialize = function(atributes) {
-      console.debug('ThreadView - initialize - arguments ', arguments);
-      console.debug('ThreadView - initialize - atributes ', atributes);
+      console.debug('ThreadView#initialize - arguments ', arguments);
+      console.debug('ThreadView#initialize - atributes ', atributes);
       return this.boardId = atributes.boardId;
     };
 
     ThreadView.prototype.getTemplateData = function() {
-      console.log('ThreadView - @model - ', this.model);
+      console.log('ThreadView#getTemplateData - @model - ', this.model);
       return {
         thread: this.model,
         boardId: this.boardId
@@ -1935,6 +2222,10 @@ window.require.define({"views/threads_view": function(exports, require, module) 
     function ThreadsView() {
       this.toggleEdit = __bind(this.toggleEdit, this);
 
+      this["delete"] = __bind(this["delete"], this);
+
+      this.edit = __bind(this.edit, this);
+
       this.create = __bind(this.create, this);
       return ThreadsView.__super__.constructor.apply(this, arguments);
     }
@@ -1953,11 +2244,12 @@ window.require.define({"views/threads_view": function(exports, require, module) 
       ThreadsView.__super__.initialize.apply(this, arguments);
       console.debug('ThreadsView#initialize - options', options);
       this.boardId = options.collection.boardId;
-      this.container = '.board-' + options.collection.boardId + '-threads';
       console.debug('ThreadsView#initialize - @container', this.container);
       this.delegate('click', 'button.item-edit', this.toggleEdit);
       this.delegate('submit', 'form.thread-create', this.create);
-      return console.debug('ThreadsView - @collection ', this.collection);
+      this.delegate('submit', 'form.thread-edit', this.edit);
+      this.delegate('click', 'button.thread-delete', this["delete"]);
+      return console.debug('ThreadsView#@collection ', this.collection);
     };
 
     ThreadsView.prototype.create = function(event) {
@@ -1973,6 +2265,51 @@ window.require.define({"views/threads_view": function(exports, require, module) 
       if (result != null) {
         return $('input.thread-create-reset').trigger('click');
       }
+    };
+
+    ThreadsView.prototype.edit = function(event) {
+      var cid, thread, threadContainer,
+        _this = this;
+      event.preventDefault();
+      console.debug('ThreadsView#edit', event);
+      threadContainer = $(event.target).parents('div.thread');
+      cid = threadContainer.data('cid');
+      console.debug('ThreadsView#edit - cid ', cid);
+      thread = this.collection.getByCid(cid);
+      console.debug('ThreadsView#edit - thread before', thread);
+      thread.set({
+        title: threadContainer.find('input.title').val(),
+        description: threadContainer.find('input.description').val()
+      });
+      console.debug('ThreadsView#edit - thread before', thread);
+      thread.save().done(function(response) {
+        return _this.collection.fetch({
+          url: _this.collection.url()
+        });
+      });
+      return console.debug('ThreadsView#edit - thread after', thread);
+    };
+
+    ThreadsView.prototype["delete"] = function(event) {
+      var cid, result, thread;
+      event.preventDefault();
+      console.debug('ThreadsView#delete', event);
+      cid = $(event.target).parents('div.thread').data('cid');
+      console.debug('ThreadsView#delete - cid ', cid);
+      thread = this.collection.getByCid(cid);
+      console.debug('ThreadsView#delete - thread before', thread);
+      result = thread.destroy({
+        success: function(model, response) {
+          console.debug('ThreadsView#delete - thread desctroy success model', model);
+          return console.debug('ThreadsView#delete - thread desctroy success response', response);
+        },
+        error: function(model, response) {
+          console.debug('ThreadsView#delete - thread desctroy error model', model);
+          return console.debug('ThreadsView#delete - thread desctroy error response', response);
+        }
+      });
+      console.debug('ThreadsView#delete - result', result);
+      return console.debug('ThreadsView#delete - thread after', thread);
     };
 
     ThreadsView.prototype.toggleEdit = function(event) {

@@ -1,0 +1,37 @@
+<div class="well post container" data-cid="{{post.cid}}">
+  <button class="btn btn-danger pull-right post-delete"><i class="icon-remove icon-white"></i></button>
+  <button class="btn btn-primary pull-right item-edit"><i class="icon-pencil icon-white"></i></button>
+  <div class="view">
+    <p><a href="/boards/{{boardId}}/threads/{{threadId}}/posts/{{post.attributes.id}}"/>{{post.attributes.id}}</a></p>
+    <p>{{post.attributes.title}}</p>
+    <p>{{post.attributes.description}}</p>
+  </div>
+  <div class="edit-view hidden">
+    <form class="post-edit form-horizontal">
+      <div class="control-group">
+        <label class="control-label" for="post-title">Title</label>
+        <div class="controls">
+          <input type="text" 
+            name="title" 
+            class="input-xlarge title"
+            value="{{post.attributes.title}}" 
+            placeholder="Title"/>
+        </div>
+      </div>
+      <div class="control-group">
+        <label class="control-label" for="post-description">Description</label>
+        <div class="controls">
+          <input type="text" 
+            name="description" 
+            class="input-xlarge description"
+            value="{{post.attributes.description}}" 
+            placeholder="Description"/>
+        </div>
+      </div>
+      <div class="form-actions">
+        <input class="btn btn-primary post-edit-submit" type="submit" value="Save post"/>
+        <input class="btn btn-inverse post-edit-reset" type="reset" value="Reset"/>
+      </div>
+    </form>
+  </div>
+</div>
